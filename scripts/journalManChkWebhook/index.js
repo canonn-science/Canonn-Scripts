@@ -11,20 +11,22 @@ const latestPath = path.join(__dirname, 'data', 'latest.json');
 const examplePath = path.join(__dirname, 'data', 'example.json');
 let latestVersion = {};
 
-try {
-	if (fs.existsSync(latestPath)) {
-		let rawFile = fs.readFileSync(latestPath);
-		latestVersion = JSON.parse(rawFile);
-	} else {
-		let exampleRawFile = fs.readFileSync(examplePath);
-		fs.writeFileSync(latestPath, exampleRawFile);
-		latestVersion = JSON.parse(exampleRawFile);
-	}
-} catch (err) {
-	console.log(err);
-}
-
 const downloadJournal = async version => {
+	// Get current version or create the latest.json file
+	try {
+		if (fs.existsSync(latestPath)) {
+			let rawFile = fs.readFileSync(latestPath);
+			latestVersion = JSON.parse(rawFile);
+		} else {
+			let exampleRawFile = fs.readFileSync(examplePath);
+			fs.writeFileSync(latestPath, exampleRawFile);
+			latestVersion = JSON.parse(exampleRawFile);
+		}
+	} catch (err) {
+		console.log(err);
+	}
+
+	// Construct paths (will override fdev naming for older files)
 	let journalPath = path.join(__dirname, 'data', `Journal-Manual-v${version}.pdf`);
 	let journalURL = process.env.FDEV_JNL_URL + `/v${version}/Journal-Manual-v${version}.pdf`;
 
@@ -89,11 +91,16 @@ const downloadJournal = async version => {
 };
 
 if (latestVersion) {
-  console.log('== Starting FDev Journal Checker ==');
-  cron.schedule(process.env.CRON_JNL, () => {
+	console.log('== Starting FDev Journal Checker ==');
+	if (process.env.START_NOW === "true") {
     console.log('== Checking for new Journal ==');
     downloadJournal(latestVersion.journalVersion);
-  });
+	} else {
+		cron.schedule(process.env.CRON_JNL, () => {
+			console.log('== Checking for new Journal ==');
+			downloadJournal(latestVersion.journalVersion);
+		});
+	}
 } else {
   console.log('Error No latest version file');
 }
