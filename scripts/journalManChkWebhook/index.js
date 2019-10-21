@@ -89,8 +89,9 @@ const downloadJournal = async version => {
 };
 
 if (latestVersion) {
+  console.log('== Starting FDev Journal Checker ==');
   cron.schedule(process.env.CRON_JNL, () => {
-    console.log('== Starting FDev Journal Checker ==');
+    console.log('== Checking for new Journal ==');
     downloadJournal(latestVersion.journalVersion);
   });
 } else {
