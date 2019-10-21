@@ -5,15 +5,18 @@
   "description": "Collection of simple cron based scripts that Canonn uses for various things",
   "repository": "https://github.com/canonn-science/Canonn-Scripts.git",
   "main": "index.js",
-  "scripts": {},
+  "scripts": {
+    "journalChecker": "node scripts/journalManChkWebhook/index.js"
+  },
   "dependencies": {
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
     "fs": "^0.0.1-security",
+    "hookcord": "^2.0.2",
+    "node-cron": "^2.0.3",
     "node-fetch": "^2.6.0",
-    "path": "^0.12.7",
-    "webhook-discord": "^3.5.1"
+    "path": "^0.12.7"
   },
   "author": {
     "name": "Canonn R&D",
