@@ -10,7 +10,9 @@
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
+    "fs": "^0.0.1-security",
     "node-fetch": "^2.6.0",
+    "path": "^0.12.7",
     "webhook-discord": "^3.5.1"
   },
   "author": {

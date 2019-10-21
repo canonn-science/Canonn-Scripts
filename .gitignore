@@ -59,3 +59,8 @@ typings/
 
 # next.js build output
 .next
+
+# Canonn Script Files
+scripts/journalManChkWebhook/data/*
+!scripts/journalManChkWebhook/data/.gitkeep
+!scripts/journalManChkWebhook/data/example.json
