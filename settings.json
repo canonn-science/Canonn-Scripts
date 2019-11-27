@@ -9,7 +9,8 @@
     "nodeID": 0,
     "timezone": "America/Phoenix",
     "retryCount": 3,
-    "delay": 500
+		"delay": 500,
+		"capiLimit": 500
 	},
 	"scripts": {
 		"journalManChkWebhook": {
@@ -21,7 +22,8 @@
       "version": "1.0.0",
       "description": "Used to update the Canonn API systems data with EDSM",
 			"enabled": true,
-			"cron": ["0 */4 * * *"]
+			"cron": ["0 */4 * * *"],
+			"edsmDelay": 1500
 		},
 		"edsmBodyUpdate": {
       "name": "CAPIv2 Updater - EDSM Bodies Sync",

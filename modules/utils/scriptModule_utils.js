@@ -1,15 +1,16 @@
-const regionTools = require('../capi/scriptModule_region');
+let capi = require('../capi/scriptModule_capi');
 
-// Processing system data from CAPIv2 or EDSM
-const processSystem = async (url, source, data) => {
+module.exports = {
+  // Processing system data from CAPIv2 or EDSM
+  processSystem: async (source, data) => {
   let newData = {};
 
   if (data.regionID) {
-    let regionRequest = await regionTools.getRegion(url, null, data.regionID);
+    let regionRequest = await capi.getRegion(undefined, data.regionID);
     newData.region = regionRequest.id;
     newData.region = data.regionID;
   } else if (data.regionName) {
-    let regionRequest = await regionTools.getRegion(url, data.regionName);
+    let regionRequest = await regionTools.getRegion(data.regionName);
     newData.region = regionRequest.id;
   }
 
@@ -43,6 +44,5 @@ const processSystem = async (url, source, data) => {
   }
 
   return newData;
-};
-
-module.exports = { processSystem };
+  },
+}
