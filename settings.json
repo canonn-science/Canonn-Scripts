@@ -1,12 +1,15 @@
 {
-	"globalSettings": {
+	"global": {
 		"url": {
 			"production": "https://api.canonn.tech",
 			"staging": "https://api.canonn.tech:2053",
 			"development": "https://api.canonn.tech:2083",
 			"local": "http://localhost:1337"
 		},
-		"nodeID": 0
+    "nodeID": 0,
+    "timezone": "America/Phoenix",
+    "retryCount": 3,
+    "delay": 500
 	},
 	"scripts": {
 		"journalManChkWebhook": {
@@ -14,10 +17,14 @@
 			"cron": ["0 */4 * * *"]
 		},
 		"edsmSystemUpdate": {
+      "name": "CAPIv2 Updater - Systems Update",
+      "version": "1.0.0",
+      "description": "Used to update the Canonn API systems data with EDSM",
 			"enabled": true,
 			"cron": ["0 */4 * * *"]
 		},
 		"edsmBodyUpdate": {
+      "name": "CAPIv2 Updater - EDSM Bodies Sync",
 			"enabled": true,
 			"cron": ["0 */4 * * *"]
 		},
