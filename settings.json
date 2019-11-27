@@ -1,0 +1,63 @@
+{
+	"globalSettings": {
+		"url": {
+			"production": "https://api.canonn.tech",
+			"staging": "https://api.canonn.tech:2053",
+			"development": "https://api.canonn.tech:2083",
+			"local": "http://localhost:1337"
+		},
+		"nodeID": 0
+	},
+	"scripts": {
+		"journalManChkWebhook": {
+			"enabled": true,
+			"cron": ["0 */4 * * *"]
+		},
+		"edsmSystemUpdate": {
+			"enabled": true,
+			"cron": ["0 */4 * * *"]
+		},
+		"edsmBodyUpdate": {
+			"enabled": true,
+			"cron": ["0 */4 * * *"]
+		},
+		"deleteMaterialReports": {
+			"enabled": true,
+      "cron": ["*/10 * * * *"],
+      "keepMonthCount": 1
+		},
+		"baseReportValidation": {
+			"enabled": true,
+      "cron": ["0 7 * * *"],
+      "settings": {
+        "duplicateRange": 5,
+        "cmdrBlacklist": true,
+        "clientBlacklist": true,
+        "delay": 500,
+        "edsmRetry": 5
+      }
+		},
+		"orbitalReportValidation": {
+			"enabled": true,
+			"cron": ["0 7 * * *"],
+      "settings": {
+        "duplicateRange": 5,
+        "cmdrBlacklist": true,
+        "clientBlacklist": true,
+        "delay": 500,
+        "edsmRetry": 5
+      }
+		},
+		"guardianReportValidation": {
+			"enabled": true,
+			"cron": ["0 7 * * *"],
+      "settings": {
+        "duplicateRange": 5,
+        "cmdrBlacklist": true,
+        "clientBlacklist": true,
+        "delay": 500,
+        "edsmRetry": 5
+      }
+		}
+	}
+}

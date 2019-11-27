@@ -110,6 +110,11 @@ path@^0.12.7:
     process "^0.11.1"
     util "^0.10.3"
 
+perfect-logger@^1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/perfect-logger/-/perfect-logger-1.6.1.tgz#f54ebb18e383db3eba8ec98af15797540c534027"
+  integrity sha512-ab7Ql82LKXoFKBNIdZHheqLpuKgp0V0NsYsGq7OLj13JMmqfsVs1Yv9ZkU24psbLpdN3ZCqg3WzWTFltMPoOOA==
+
 process@^0.11.1:
   version "0.11.10"
   resolved "https://registry.yarnpkg.com/process/-/process-0.11.10.tgz#7332300e840161bda3e69a1d1d91a7d4bc16f182"
