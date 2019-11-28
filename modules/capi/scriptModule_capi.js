@@ -316,4 +316,26 @@ module.exports = {
 			return await response.json();
 		}
 	},
+
+	/**
+	 * Update a single Body
+	 *
+	 * @return {Object}
+	 */
+
+	updateBody: async (bodyID, bodyData, jwt, url = capiURL) => {
+		let bodyURL = url + `/bodies/${bodyID}`;
+
+		let response = await fetchTools.fetchRetry(bodyURL, settings.global.retryCount, settings.global.delay, {
+			method: 'PUT',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${jwt}`,
+			},
+			body: JSON.stringify(bodyData),
+		});
+
+		return await response;
+	},
 };
