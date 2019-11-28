@@ -1,26 +1,29 @@
-let logger = require('perfect-logger');
-let loginit = require('../../modules/logger/scriptModule_loginit');
-let edsm = require('../../modules/edsm/scriptModule_edsm');
-let capi = require('../../modules/capi/scriptModule_capi');
-let utils = require('../../modules/utils/scriptModule_utils');
-let settings = require('../../settings.json');
+const cron = require('node-cron');
+const logger = require('perfect-logger');
+const loginit = require('../../modules/logger/scriptModule_loginit');
+const edsm = require('../../modules/edsm/scriptModule_edsm');
+const capi = require('../../modules/capi/scriptModule_capi');
+const utils = require('../../modules/utils/scriptModule_utils');
+const settings = require('../../settings.json');
 const delay = ms => new Promise(res => setTimeout(res, ms));
 require('dotenv').config({ path: require('find-config')('.env') });
 
 // Init some base Script values
 let scriptName = 'edsmSystemUpdate';
 let isForced = false;
+let isCron = true;
 let jwt;
+
+// Load params
+let params = process.argv;
 
 // Start the logger
 loginit(scriptName);
 
 // Switch between forced updates
-if (process.argv[2]) {
-	if (process.argv[2].toLowerCase() === '--force') {
-		isForced = true;
-		logger.warn('Forcfully updating all systems');
-	}
+if (params.includes('--force'.toLowerCase()) === true) {
+	isForced = true;
+	logger.warn('Forcfully updating all systems');
 }
 
 // Ask CAPI for systems
@@ -57,7 +60,7 @@ const update = async () => {
 	let systems = await fetchSystems(0);
 
 	for (i = 0; i < systems.length; i++) {
-		logger.info('Asking EDSM for information on ID: ' + systems[i].id);
+		logger.info(`Asking EDSM for information on ID: ${systems[i].id} [${i + 1}/${systems.length}]`);
 		let response = await edsm.getSystemEDSM(systems[i].systemName);
 
 		if (!response || response == [] || response == {}) {
@@ -95,9 +98,20 @@ const update = async () => {
 		await delay(settings.scripts.edsmSystemUpdate.edsmDelay);
 	}
 
-	logger.stop('----------------')
-	logger.stop('Script Complete!')
-	logger.stop('----------------')
+	logger.stop('----------------');
+	logger.stop('Script Complete!');
+	logger.stop('----------------');
 };
 
-update();
+if (params.includes('--now'.toLowerCase()) === true) {
+	isCron = false;
+	logger.start('Forcefully running scripts');
+	update();
+}
+
+if (isCron === true) {
+	logger.start('Starting in cron mode');
+	cron.schedule(settings.scripts[scriptName].cron[settings.global.nodeID], () => {
+		update();
+	});
+}

@@ -9,7 +9,7 @@
     "nodeID": 0,
     "timezone": "America/Phoenix",
     "retryCount": 3,
-		"delay": 500,
+		"delay": 100,
 		"capiLimit": 500
 	},
 	"scripts": {
