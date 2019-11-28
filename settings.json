@@ -22,22 +22,22 @@
       "version": "1.0.0",
       "description": "Used to update the Canonn API systems data with EDSM",
 			"enabled": true,
-			"cron": ["0 */4 * * *"],
+			"cron": ["0 2 * * *"],
 			"edsmDelay": 1500
 		},
 		"edsmBodyUpdate": {
       "name": "CAPIv2 Updater - EDSM Bodies Sync",
 			"enabled": true,
-			"cron": ["0 */4 * * *"]
+			"cron": ["0 6 * * *"]
 		},
 		"deleteMaterialReports": {
 			"enabled": true,
-      "cron": ["*/10 * * * *"],
+      "cron": ["*/30 * * * *"],
       "keepMonthCount": 1
 		},
 		"baseReportValidation": {
 			"enabled": true,
-      "cron": ["0 7 * * *"],
+      "cron": ["0 */1 * * *"],
       "settings": {
         "duplicateRange": 5,
         "cmdrBlacklist": true,
@@ -48,7 +48,7 @@
 		},
 		"orbitalReportValidation": {
 			"enabled": true,
-			"cron": ["0 7 * * *"],
+			"cron": ["30 */1 * * *"],
       "settings": {
         "duplicateRange": 5,
         "cmdrBlacklist": true,
@@ -59,7 +59,7 @@
 		},
 		"guardianReportValidation": {
 			"enabled": true,
-			"cron": ["0 7 * * *"],
+			"cron": ["45 */1 * * *"],
       "settings": {
         "duplicateRange": 5,
         "cmdrBlacklist": true,
