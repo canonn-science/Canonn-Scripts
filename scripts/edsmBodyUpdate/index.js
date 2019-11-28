@@ -60,86 +60,80 @@ const update = async () => {
 	let bodies = await fetchBodies(0);
 
 	// Create edsm system cache
-	let edsmSystems = []
+	let edsmSystems = [];
 
 	const searchBodyList = (list, key) => {
 		for (l = 0; l < list.length; l++) {
-			if (list[l].name) {
-				if (list[l].name.toUpperCase() === key.toUpperCase()){
-					return list[l]
-				}
+			if (list[l].name && list[l].name.toUpperCase() === key.toUpperCase()) {
+				return list[l];
 			}
 		}
-		return undefined
-	}
+		return undefined;
+	};
 
-	const badBody = async (bodyData) => {
+	const badBody = async bodyData => {
 		logger.info('<-- Body not found, updating CAPI with skip count');
-
-		bodyData.missingSkipCount += 1
-
-		await capi.updateBody(bodyData.id, {
-			missingSkipCount: bodyData.missingSkipCount
-		}, jwt)
-	}
+		bodyData.missingSkipCount += 1;
+		await capi.updateBody(
+			bodyData.id,
+			{
+				missingSkipCount: bodyData.missingSkipCount,
+			},
+			jwt
+		);
+	};
 
 	const goodBody = async (bodyID, bodyData, systemID) => {
 		logger.info('<-- Body Found, updating CAPI with new data');
-		
-		let newData = await utils.processBody('EDSM', bodyData, systemID)
+		let newData = await utils.processBody('edsm', bodyData, systemID);
+		await capi.updateBody(bodyID, newData, jwt);
+	};
 
-		console.log(newData)
-	}
-	
 	for (i = 0; i < bodies.length; i++) {
-		logger.info(`Updating information on Body ID: ${bodies[i].id} [${i + 1}/${bodies.length}]`)
+		logger.info(`Updating information on Body ID: ${bodies[i].id} [${i + 1}/${bodies.length}]`);
 
 		let bodyData;
 		let isGood = false;
 
 		// Check cache in case we already asked for the system
 		edsmSystems.find(system => {
-			if (system.name) {
-				if (system.name.toUpperCase() === bodies[i].system.systemName.toUpperCase()) {
-					logger.info('--> System in cache, looking for body')
-					
-					let searchData = searchBodyList(system.bodies, bodies[i].bodyName)
+			if (system.name && system.name.toUpperCase() === bodies[i].system.systemName.toUpperCase()) {
+				logger.info('--> System in cache, looking for body');
 
-					if (searchData) {
-						logger.info('--> Body Found in cache')
-						bodyData = searchData
-						isGood = true;
-					}
+				let searchData = searchBodyList(system.bodies, bodies[i].bodyName);
+
+				if (searchData) {
+					logger.info('--> Body Found in cache');
+					bodyData = searchData;
+					isGood = true;
 				}
 			}
 		});
 
 		if (!bodyData) {
-			logger.info('--> System not in cache, asking EDSM')
+			logger.info('--> System not in cache, asking EDSM');
 			let response = await edsm.getBodyEDSM(bodies[i].system.systemName);
 			edsmSystems.push(await response);
 
-			if (response.name) {
-				if(response.name.toUpperCase() === bodies[i].system.systemName.toUpperCase()) {
-					logger.info('--> System in EDSM, looking for body')
-					
-					let searchData = await searchBodyList(response.bodies, bodies[i].bodyName)
+			if (response.name && response.name.toUpperCase() === bodies[i].system.systemName.toUpperCase()) {
+				logger.info('--> System in EDSM, looking for body');
 
-					if (searchData) {
-						logger.info('--> Body Found in EDSM')
-						bodyData = searchData
-						isGood = true;
-					} else {
-						logger.info('<-- Body not in EDSM')
-					}
+				let searchData = await searchBodyList(response.bodies, bodies[i].bodyName);
+
+				if (searchData) {
+					logger.info('--> Body Found in EDSM');
+					bodyData = searchData;
+					isGood = true;
+				} else {
+					logger.info('<-- Body not in EDSM');
 				}
 			}
 		}
 
 		if (isGood === true) {
-			await goodBody(bodies[i].id, bodyData, bodies[i].system.id)
+			await goodBody(bodies[i].id, bodyData, bodies[i].system.id);
 		} else {
-			await badBody(bodies[i])
+			await badBody(bodies[i]);
 		}
 		//await delay(settings.scripts.edsmBodyUpdate.edsmDelay);
 		await delay(2000);
