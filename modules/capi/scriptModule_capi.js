@@ -253,8 +253,42 @@ module.exports = {
 		return await response.json();
 	},
 
-	getBodies: {
-		//WIP
+	/**
+	 * Fetch an array of Bodies
+	 *
+	 * @return {Array}
+	 */
+
+	getBodies: async (start, forced, url = capiURL, limit = settings.global.capiLimit) => {
+		let bodiesURL;
+
+		if (forced === true) {
+			bodiesURL = url + `/bodies?_limit=${limit}&_start=${start}`;
+		} else {
+			bodiesURL =
+				url +
+				'/bodies' +
+				'?edsmID_null=true' +
+				'&missingSkipCount_lt=10' +
+				'&_limit=' +
+				limit +
+				'&_start=' +
+				start;
+		}
+
+		let bodiesData = [];
+		try {
+			bodiesData = await fetchTools.fetchRetry(bodiesURL, settings.global.retryCount, settings.global.delay, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+		} catch (error) {
+			logger.warn('Request failed');
+		}
+		return await bodiesData;
 	},
 
 	/**

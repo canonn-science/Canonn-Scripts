@@ -17,6 +17,7 @@ module.exports = {
 				return true;
 			}
 			if (response.status === 429) {
+				delay = (delay * 2)
 				logger.warn(`Rate limit Exceeded, retrying in: ${delay} Attempt number: ${attempt + 1}`);
 				return true;
 			}
