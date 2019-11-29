@@ -48,7 +48,7 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
 			keepGoing = false;
 			logger.info('Fetched ' + bodies.length + ' bodies from the Canonn API');
 		} else {
-			start = start + limit;
+			start = (parseInt(start) + limit);
 			await delay(settings.global.delay);
 		}
 	}
@@ -57,7 +57,14 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
 };
 
 const update = async () => {
-	let bodies = await fetchBodies(0);
+	// Allow custom start
+	let start = 0;
+	if (process.env.START) {
+		start = process.env.START
+		logger.warn(`Setting custom start: ${start}`);
+	}
+
+	let bodies = await fetchBodies(start);
 
 	// Create edsm system cache
 	let edsmSystems = [];
@@ -72,7 +79,7 @@ const update = async () => {
 	};
 
 	const badBody = async bodyData => {
-		logger.info('<-- Body not found, updating CAPI with skip count');
+		logger.warn('<-- Body not found, updating CAPI with skip count');
 		bodyData.missingSkipCount += 1;
 		await capi.updateBody(
 			bodyData.id,
@@ -111,7 +118,7 @@ const update = async () => {
 		});
 
 		if (!bodyData) {
-			logger.info('--> System not in cache, asking EDSM');
+			logger.warn('--> System not in cache, asking EDSM');
 			let response = await edsm.getBodyEDSM(bodies[i].system.systemName);
 			edsmSystems.push(await response);
 
@@ -125,7 +132,7 @@ const update = async () => {
 					bodyData = searchData;
 					isGood = true;
 				} else {
-					logger.info('<-- Body not in EDSM');
+					logger.warn('<-- Body not in EDSM');
 				}
 			}
 		}
@@ -135,8 +142,7 @@ const update = async () => {
 		} else {
 			await badBody(bodies[i]);
 		}
-		//await delay(settings.scripts.edsmBodyUpdate.edsmDelay);
-		await delay(2000);
+		await delay(settings.scripts.edsmBodyUpdate.edsmDelay);
 	}
 
 	logger.stop('----------------');

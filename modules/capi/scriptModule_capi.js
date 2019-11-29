@@ -100,7 +100,7 @@ module.exports = {
 				}
 			);
 		} catch (error) {
-			logger.warn('Request failed');
+			logger.warn('Blacklist request failed');
 		}
 		return await blacklistData;
 	},
@@ -122,7 +122,7 @@ module.exports = {
 			},
 		});
 
-		return await response.json();
+		return await response;
 	},
 
 	// Create a CMDR who doesn't exist
@@ -142,7 +142,7 @@ module.exports = {
 				body: JSON.stringify(cmdrData),
 			});
 
-			return await response.json();
+			return await response;
 		}
 	},
 
