@@ -60,11 +60,12 @@ const update = async () => {
 	let systems = await fetchSystems(0);
 
 	for (i = 0; i < systems.length; i++) {
-		logger.info(`Asking EDSM for information on ID: ${systems[i].id} [${i + 1}/${systems.length}]`);
+		logger.info(`Updating on information on System ID: ${systems[i].id} [${i + 1}/${systems.length}]`);
+		logger.info('--> Asking EDSM for system data');
 		let response = await edsm.getSystemEDSM(systems[i].systemName);
 
 		if (!response || response == [] || response == {}) {
-			logger.info('System not found, updating CAPI with skip count');
+			logger.warn('<-- System not found, updating CAPI with skip count');
 
 			let skipCount = 0;
 			if (typeof systems[i].missingSkipCount !== 'integer') {
@@ -81,7 +82,7 @@ const update = async () => {
 				jwt
 			);
 		} else {
-			logger.info('System Found, updating CAPI with new data');
+			logger.info('<-- System Found, updating CAPI with new data');
 			let newData = await utils.processSystem('edsm', response);
 
 			if (newData.edsmCoordLocked === false && isForced === false) {

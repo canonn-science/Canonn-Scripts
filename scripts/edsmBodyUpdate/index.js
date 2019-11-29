@@ -48,7 +48,7 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
 			keepGoing = false;
 			logger.info('Fetched ' + bodies.length + ' bodies from the Canonn API');
 		} else {
-			start = (parseInt(start) + limit);
+			start = parseInt(start) + limit;
 			await delay(settings.global.delay);
 		}
 	}
@@ -60,7 +60,7 @@ const update = async () => {
 	// Allow custom start
 	let start = 0;
 	if (process.env.START) {
-		start = process.env.START
+		start = process.env.START;
 		logger.warn(`Setting custom start: ${start}`);
 	}
 
