@@ -54,6 +54,23 @@ module.exports = {
 		}
 	},
 
+	updateAPILog: async (logdata, jwt, url = capiURL) => {
+		let logURL = url + '/apiupdates';
+
+		let response = await fetchTools.fetch_retry(5, logURL, {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${jwt}`,
+			},
+			body: JSON.stringify(logdata),
+		});
+		let newLog = await response.json();
+
+		return newLog;
+	},
+
 	/**
 	 * Check if CMDR or Client is blacklisted
 	 *
@@ -86,6 +103,47 @@ module.exports = {
 			logger.warn('Request failed');
 		}
 		return await blacklistData;
+	},
+
+	// Fetch CMDR from CAPIv2
+	getCMDR: async (cmdr, cmdrID, url = capiURL) => {
+		var cmdrURL;
+		if (cmdrID && (!cmdr || cmdr === null || typeof cmdr === 'undefined')) {
+			cmdrURL = url + `/cmdrs/${cmdrID}`;
+		} else {
+			cmdrURL = url + '/cmdrs?cmdrName=' + encodeURIComponent(cmdr);
+		}
+
+		let response = await fetchTools.fetch_retry(5, cmdrURL, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return await response.json();
+	},
+
+	// Create a CMDR who doesn't exist
+	createCMDR: async (cmdrData, jwt, url = capiURL) => {
+		let cmdrURL = url + '/cmdrs';
+
+		if (cmdrData.cmdrName === null || typeof cmdrData.cmdrName === 'undefined') {
+			return {};
+		} else {
+			let response = await fetchTools.fetch_retry(5, cmdrURL, {
+				method: 'POST',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${jwt}`,
+				},
+				body: JSON.stringify(cmdrData),
+			});
+
+			return await response.json();
+		}
 	},
 
 	/**
@@ -161,7 +219,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	createSystem: async (url, systemData, jwt) => {
+	createSystem: async (systemData, jwt, url = capiURL) => {
 		let systemURL = url + '/systems';
 
 		if (systemData.systemName === null || typeof systemData.systemName === 'undefined') {
@@ -234,7 +292,7 @@ module.exports = {
 	 * @return {Array}
 	 */
 
-	getBody: async (url, body, bodyID) => {
+	getBody: async (body, bodyID, url = capiURL) => {
 		var bodyURL;
 		if (bodyID && (!body || body === null || typeof body === 'undefined')) {
 			bodyURL = url + `/bodies/${bodyID}`;
@@ -297,7 +355,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	createBody: async (url, bodyData, jwt) => {
+	createBody: async (bodyData, jwt, url = capiURL) => {
 		let bodyURL = url + '/bodies';
 
 		if (bodyData.bodyName === null || typeof bodyData.bodyName === 'undefined') {
@@ -337,5 +395,175 @@ module.exports = {
 		});
 
 		return await response;
+	},
+
+	// Get count of reports to see if we need to validate them
+	getReportCount: async (url, reportType, reportStatus) => {
+		let reportCountURL = url + `/${reportType}reports/count?reportStatus=${reportStatus}`;
+		const response = await fetchTools.fetch_retry(5, reportCountURL, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return await response.text();
+	},
+
+	// Fetch all Reports based on type
+	getReports: async (reportType, reportStatus, url = capiURL) => {
+		let reports = [];
+		let reportData = null;
+		let keepGoing = true;
+		let API_START = 0;
+		let API_LIMIT = 1000;
+
+		while (keepGoing) {
+			let reportURL =
+				url + `/${reportType}reports?reportStatus=${reportStatus}&_limit=${API_LIMIT}&_start=${API_START}`;
+			const response = await fetchTools.fetch_retry(5, reportURL, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+
+			reportData = await response.json();
+			reports.push.apply(reports, reportData);
+			API_START += API_LIMIT;
+
+			if (reportData.length < API_LIMIT) {
+				keepGoing = false;
+				return reports;
+			}
+		}
+	},
+
+	// Update report based on type and ID
+	updateReport: async (reportType, reportID, reportData, jwt, url = capiURL) => {
+		let reportURL = url + `/${reportType}reports/${reportID}`;
+		let response = await fetchTools.fetch_retry(5, reportURL, {
+			method: 'PUT',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${jwt}`,
+			},
+			body: JSON.stringify(reportData),
+		});
+
+		return await response.json();
+	},
+
+	// Get a single site by ID or fetch all sites matching a body
+	getSites: async (reportType, body, siteID, url = capiURL) => {
+		let sites = [];
+		let siteData = null;
+		let keepGoing = true;
+		let API_START = 0;
+		let API_LIMIT = 1000;
+
+		var sitesURL;
+		if (siteID && (!body || body === null || typeof body === 'undefined')) {
+			sitesURL = url + `/${reportType}sites/${siteID}`;
+		} else {
+			sitesURL =
+				url +
+				`/${reportType}sites?_limit=${API_LIMIT}&_start=${API_START}&body.bodyName=` +
+				encodeURIComponent(body);
+		}
+
+		while (keepGoing) {
+			let response = await fetchTools.fetch_retry(5, sitesURL, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+
+			siteData = await response.json();
+			sites.push.apply(sites, siteData);
+			API_START += API_LIMIT;
+
+			if (siteData.length < API_LIMIT) {
+				keepGoing = false;
+				return sites;
+			}
+		}
+	},
+
+	// Used to fetch the highest siteID to create a new site
+	getSiteID: async (reportType, url = capiURL) => {
+		let siteIDURL = url + `/${reportType}sites?_limit=1&_sort=siteID:desc`;
+		const response = await fetchTools.fetch_retry(5, siteIDURL, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		let siteIDData = await response.json();
+
+		if (!Array.isArray(siteIDData) || !siteIDData.length) {
+			return 1;
+		} else {
+			let newSiteID = siteIDData[0].siteID + 1;
+			return newSiteID;
+		}
+	},
+
+	// Create site if report is valid
+	createSite: async (reportType, siteData, jwt, url = capiURL) => {
+		let newSiteID = await getSiteID(url, reportType);
+
+		siteData.siteID = newSiteID;
+
+		let createSiteURL = url + `/${reportType}sites`;
+		let response = await fetchTools.fetch_retry(5, createSiteURL, {
+			method: 'POST',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${jwt}`,
+			},
+			body: JSON.stringify(siteData),
+		});
+
+		return await response.json();
+	},
+
+	// Update site if new data exists in a report
+	updateSite: async (reportType, siteID, siteData, jwt, url = capiURL) => {
+		let siteURL = url + `/${reportType}sites/${siteID}`;
+		let response = await fetchTools.fetch_retry(5, siteURL, {
+			method: 'PUT',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+				Authorization: `Bearer ${jwt}`,
+			},
+			body: JSON.stringify(siteData),
+		});
+
+		return await response.json();
+	},
+
+	// Get type to validate against
+	getType: async (reportType, type, url = capiURL) => {
+		let typeURL = url + `/${reportType}types?type=` + encodeURIComponent(type);
+
+		let response = await fetchTools.fetch_retry(5, typeURL, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return await response.json();
 	},
 };
