@@ -17,7 +17,6 @@ let jwt;
 
 // Load params
 let params = process.argv;
-console.log(params.includes('--novalidate'.toLowerCase()))
 let reportKeys = settings.scripts[scriptName].acceptedTypes
 
 // Start the logger
@@ -111,10 +110,21 @@ const validate = async () => {
 	} else {
 		logger.start('Validating Reports')
 		logger.info('----------------');
-		for (i = 0; i < reportKeys.length; i++) {
-			logger.info(`Validating ${reportKeys[i].toUpperCase()} Reports`)
 
+		for (l = 0; l < reportKeys.length; l++) {
+			if (reportCounts.data[reportKeys[l]].reports.pending > 0) {
+			logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`)
+			let toValidate = await fetchReports(reportKeys[l], 'pending', 0);
 
+			for (v = 0; v < toValidate.length; v++) {
+				logger.info(`Validating ${reportKeys[l].toUpperCase()} report ID: ${toValidate[v].id} [${v + 1}/${toValidate.length}]`)
+
+				// do report processing
+			}
+
+			} else {
+				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports marked as \"issue\"`)
+			}
 			logger.info('----------------');
 		}
 	logger.stop('Report validation complete')
