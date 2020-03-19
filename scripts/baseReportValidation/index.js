@@ -1,9 +1,9 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
 const loginit = require('../../modules/logger/scriptModule_loginit');
-const edsm = require('../../modules/edsm/scriptModule_edsm');
 const capi = require('../../modules/capi/scriptModule_capi');
 const utils = require('../../modules/utils/scriptModule_utils');
+const validateTools = require('../../modules/validate/scriptModule_validation');
 const settings = require('../../settings.json');
 const delay = ms => new Promise(res => setTimeout(res, ms));
 require('dotenv').config({ path: require('find-config')('.env') });
@@ -17,7 +17,7 @@ let jwt;
 
 // Load params
 let params = process.argv;
-let reportKeys = settings.scripts[scriptName].acceptedTypes
+let reportKeys = settings.scripts[scriptName].acceptedTypes;
 
 // Start the logger
 loginit(scriptName);
@@ -61,36 +61,47 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 	return reports;
 };
 
-const resetReports = async (count) => {
+const resetReports = async count => {
 	logger.warn('Performing issue report reset');
 	logger.info('----------------');
 	for (r = 0; r < reportKeys.length; r++) {
-		logger.warn(`Resetting ${reportKeys[r].toUpperCase()} reports to \"pending\"`)
+		logger.warn(`Resetting ${reportKeys[r].toUpperCase()} reports to \"pending\"`);
 		if (count.data[reportKeys[r]].reports.issue > 0) {
 			let resetList = await fetchReports(reportKeys[r], 'issue', 0);
 
 			for (z = 0; z < resetList.length; z++) {
-				logger.info(`Resetting ${reportKeys[r].toUpperCase()} report ID: ${resetList[z].id} [${z + 1}/${resetList.length}]`)
+				logger.info(
+					`Resetting ${reportKeys[r].toUpperCase()} report ID: ${resetList[z].id} [${z + 1}/${
+						resetList.length
+					}]`
+				);
 				logger.info(`--> Sending updated Report`);
 
-				let reportData = await capi.updateReport(reportKeys[r], resetList[z].id, {
-					reportStatus: 'pending'
-				}, jwt);
+				let reportData = await capi.updateReport(
+					reportKeys[r],
+					resetList[z].id,
+					{
+						reportStatus: 'pending',
+					},
+					jwt
+				);
 
 				if (reportData.reportStatus !== 'pending') {
-					logger.warn(`<-- ${reportKeys[r].toUpperCase()} report ID: ${resetList[z].id} did not reset successfully`);
+					logger.warn(
+						`<-- ${reportKeys[r].toUpperCase()} report ID: ${resetList[z].id} did not reset successfully`
+					);
 				} else {
 					logger.info('<-- Report reset');
 				}
 			}
 		} else {
-			logger.info(`There are no ${reportKeys[r].toUpperCase()} reports marked as \"issue\"`)
+			logger.info(`There are no ${reportKeys[r].toUpperCase()} reports marked as \"issue\"`);
 		}
 		logger.info('----------------');
 	}
-	logger.stop('Report reset complete')
+	logger.stop('Report reset complete');
 	logger.info('----------------');
-}
+};
 
 const validate = async () => {
 	// Login to the Canonn API
@@ -102,32 +113,39 @@ const validate = async () => {
 	let reportCounts = await capi.getReportCount();
 
 	if (doReset === true) {
-		await resetReports(reportCounts)
-	};
+		await resetReports(reportCounts);
+	}
 
 	if (doValidate === false) {
 		logger.warn('Skipping report validation');
 	} else {
-		logger.start('Validating Reports')
+		logger.start('Validating Reports');
 		logger.info('----------------');
 
 		for (l = 0; l < reportKeys.length; l++) {
 			if (reportCounts.data[reportKeys[l]].reports.pending > 0) {
-			logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`)
-			let toValidate = await fetchReports(reportKeys[l], 'pending', 0);
+				logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`);
+				let toValidate = await fetchReports(reportKeys[l], 'pending', 0);
 
-			for (v = 0; v < toValidate.length; v++) {
-				logger.info(`Validating ${reportKeys[l].toUpperCase()} report ID: ${toValidate[v].id} [${v + 1}/${toValidate.length}]`)
+				for (v = 0; v < toValidate.length; v++) {
+					logger.info(
+						`Validating ${reportKeys[l].toUpperCase()} report ID: ${toValidate[v].id} [${v + 1}/${
+							toValidate.length
+						}]`
+					);
 
-				// do report processing
-			}
+					let reportChecked = await validateTools.baseReport(reportKeys[l], toValidate[v], jwt);
 
+					console.log(reportChecked.checklist);
+
+					await delay(8000);
+				}
 			} else {
-				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports marked as \"issue\"`)
+				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);
 			}
 			logger.info('----------------');
 		}
-	logger.stop('Report validation complete')
+		logger.stop('Report validation complete');
 	}
 
 	logger.stop('----------------');

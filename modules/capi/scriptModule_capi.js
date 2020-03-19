@@ -1,4 +1,5 @@
 const logger = require('perfect-logger');
+const moment = require('moment');
 const fetchTools = require('../scriptModule_fetchRetry');
 const settings = require('../../settings.json');
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -10,6 +11,10 @@ if (process.env.NODE_ENV) {
 } else {
 	capiURL = settings.global.url.local;
 }
+
+let dateNow = moment()
+	.utc()
+	.format('YYYY-MM-DD hh:mm:ss');
 
 module.exports = {
 	/**
@@ -410,13 +415,18 @@ module.exports = {
 		let reportCountURL = url + '/totalcount';
 
 		try {
-			reportCountData = await fetchTools.fetchRetry(reportCountURL, settings.global.retryCount, settings.global.delay, {
-				method: 'GET',
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-				},
-			});
+			reportCountData = await fetchTools.fetchRetry(
+				reportCountURL,
+				settings.global.retryCount,
+				settings.global.delay,
+				{
+					method: 'GET',
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+					},
+				}
+			);
 		} catch (error) {
 			logger.warn('getReportCount - Request failed');
 		}
@@ -452,15 +462,20 @@ module.exports = {
 		let reportURL = url + `/${reportType}reports/${reportID}`;
 
 		try {
-			let updatedReportData = await fetchTools.fetchRetry(reportURL, settings.global.retryCount, settings.global.delay, {
-				method: 'PUT',
-				headers: {
-					Accept: 'application/json',
-					'Content-Type': 'application/json',
-					Authorization: `Bearer ${jwt}`,
-				},
-				body: JSON.stringify(reportData),
-			});
+			let updatedReportData = await fetchTools.fetchRetry(
+				reportURL,
+				settings.global.retryCount,
+				settings.global.delay,
+				{
+					method: 'PUT',
+					headers: {
+						Accept: 'application/json',
+						'Content-Type': 'application/json',
+						Authorization: `Bearer ${jwt}`,
+					},
+					body: JSON.stringify(reportData),
+				}
+			);
 			return await updatedReportData;
 		} catch (error) {
 			logger.warn('updateReport - Request failed');
@@ -575,5 +590,76 @@ module.exports = {
 		});
 
 		return await response.json();
+	},
+
+	/**
+	 * Provide list of report checklist valid data
+	 *
+	 * @return {Object}
+	 */
+
+	reportStatus: () => {
+		return {
+			beta: {
+				isValid: false,
+				reason: `[${dateNow}] - [DECLINED] - Report was made with a beta client`,
+				reportStatus: 'declined',
+			},
+			blacklisted: {
+				isValid: false,
+				reason: `[${dateNow}] - [DECLINED] - Client or CMDR is on the blacklist`,
+				reportStatus: 'declined',
+			},
+			network: {
+				isValid: false,
+				reason: `[${dateNow}] - [ISSUE] - Report processing encountered a network issue`,
+				reportStatus: 'issue',
+			},
+			capiv2Type: {
+				isValid: false,
+				reason: `[${dateNow}] - [ISSUE] - Type is not valid, or type is not mapped`,
+				reportStatus: 'issue',
+			},
+			duplicate: {
+				isValid: false,
+				reason: `[${dateNow}] - [DUPLICATE] - Site is a duplicate`,
+				reportStatus: 'duplicate',
+			},
+			missingCoords: {
+				isValid: false,
+				reason: `[${dateNow}] - [DECLINED] - Report is missing Latitude or Longitude`,
+				reportStatus: 'declined',
+			},
+			missingCMDR: {
+				isValid: false,
+				reason: `[${dateNow}] - [DECLINED] - Report is missing a CMDR`,
+				reportStatus: 'declined',
+			},
+			missingClient: {
+				isValid: false,
+				reason: `[${dateNow}] - [DECLINED] - Report is missing a Client Version`,
+				reportStatus: 'declined',
+			},
+			edsmSystem: {
+				isValid: false,
+				reason: `[${dateNow}] - [ISSUE] - System does not exist in EDSM`,
+				reportStatus: 'issue',
+			},
+			edsmBody: {
+				isValid: false,
+				reason: `[${dateNow}] - [ISSUE] - Body does not exist in EDSM`,
+				reportStatus: 'issue',
+			},
+			updated: {
+				isValid: true,
+				reason: `[${dateNow}] - [UPDATE] - Report can update existing site`,
+				reportStatus: 'updated',
+			},
+			accepted: {
+				isValid: true,
+				reason: `[${dateNow}] - [ACCEPTED] - Report has been accepted`,
+				reportStatus: 'accepted',
+			},
+		};
 	},
 };
