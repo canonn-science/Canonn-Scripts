@@ -6,7 +6,6 @@
 			"development": "https://api.canonn.tech:2083",
 			"local": "http://localhost:1337"
 		},
-    "nodeID": 0,
     "timezone": "America/Phoenix",
     "retryCount": 3,
 		"delay": 100,
@@ -40,36 +39,71 @@
 		},
 		"baseReportValidation": {
 			"enabled": true,
-      "cron": ["0 */1 * * *"],
+      "cron": ["0 */4 * * *"],
       "settings": {
         "duplicateRange": 5,
         "cmdrBlacklist": true,
         "clientBlacklist": true,
         "delay": 500,
         "edsmRetry": 5
-      }
+			},
+			"acceptedTypes": [
+				"ap",
+				"bm",
+				"bt",
+				"cs",
+				"fg",
+				"fm",
+				"gv",
+				"gy",
+				"ls",
+				"tw"
+			]
 		},
 		"orbitalReportValidation": {
 			"enabled": true,
-			"cron": ["30 */1 * * *"],
+			"cron": ["30 */4 * * *"],
       "settings": {
         "duplicateRange": 5,
         "cmdrBlacklist": true,
         "clientBlacklist": true,
         "delay": 500,
         "edsmRetry": 5
-      }
+      },
+			"acceptedTypes": [
+				"gen",
+				"gb"
+			]
+		},
+		"thargoidReportValidation": {
+			"enabled": true,
+			"cron": ["30 */4 * * *"],
+      "settings": {
+        "duplicateRange": 5,
+        "cmdrBlacklist": true,
+        "clientBlacklist": true,
+        "delay": 500,
+        "edsmRetry": 5
+      },
+			"acceptedTypes": [
+				"tb",
+				"ts"
+			]
 		},
 		"guardianReportValidation": {
 			"enabled": true,
-			"cron": ["45 */1 * * *"],
+			"cron": ["45 */4 * * *"],
       "settings": {
         "duplicateRange": 5,
         "cmdrBlacklist": true,
         "clientBlacklist": true,
         "delay": 500,
         "edsmRetry": 5
-      }
+      },
+			"acceptedTypes": [
+				"gr",
+				"gs"
+			]
 		}
 	}
 }

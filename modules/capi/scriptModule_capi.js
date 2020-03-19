@@ -19,6 +19,7 @@ module.exports = {
 	 */
 
 	login: async (username, password, url = capiURL) => {
+		logger.info('----------------');
 		logger.info('Logging into the Canonn API');
 
 		// set body information to .env options
@@ -47,9 +48,11 @@ module.exports = {
 			const json = await response;
 
 			logger.info('Logged in as user: ' + json.user.username);
+			logger.info('----------------');
 			return json.jwt;
 		} catch (error) {
 			logger.crit('Canonn API Login Failed!');
+			logger.info('----------------');
 			logger.crit(error.message);
 		}
 	},
@@ -170,7 +173,7 @@ module.exports = {
 				},
 			});
 		} catch (error) {
-			logger.warn('Request failed');
+			logger.warn('getSystem - Request failed');
 		}
 		return await systemData;
 	},
@@ -208,7 +211,7 @@ module.exports = {
 				},
 			});
 		} catch (error) {
-			logger.warn('Request failed');
+			logger.warn('getSystems - Request failed');
 		}
 		return await systemsData;
 	},
@@ -344,7 +347,7 @@ module.exports = {
 				},
 			});
 		} catch (error) {
-			logger.warn('Request failed');
+			logger.warn('getBodies - Request failed');
 		}
 		return await bodiesData;
 	},
@@ -397,64 +400,71 @@ module.exports = {
 		return await response;
 	},
 
-	// Get count of reports to see if we need to validate them
-	getReportCount: async (url, reportType, reportStatus) => {
-		let reportCountURL = url + `/${reportType}reports/count?reportStatus=${reportStatus}`;
-		const response = await fetchTools.fetch_retry(5, reportCountURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			},
-		});
+	/**
+	 * Fetch total count of all reports
+	 *
+	 * @return {Object}
+	 */
 
-		return await response.text();
-	},
+	getReportCount: async (url = capiURL) => {
+		let reportCountURL = url + '/totalcount';
 
-	// Fetch all Reports based on type
-	getReports: async (reportType, reportStatus, url = capiURL) => {
-		let reports = [];
-		let reportData = null;
-		let keepGoing = true;
-		let API_START = 0;
-		let API_LIMIT = 1000;
-
-		while (keepGoing) {
-			let reportURL =
-				url + `/${reportType}reports?reportStatus=${reportStatus}&_limit=${API_LIMIT}&_start=${API_START}`;
-			const response = await fetchTools.fetch_retry(5, reportURL, {
+		try {
+			reportCountData = await fetchTools.fetchRetry(reportCountURL, settings.global.retryCount, settings.global.delay, {
 				method: 'GET',
 				headers: {
 					Accept: 'application/json',
 					'Content-Type': 'application/json',
 				},
 			});
-
-			reportData = await response.json();
-			reports.push.apply(reports, reportData);
-			API_START += API_LIMIT;
-
-			if (reportData.length < API_LIMIT) {
-				keepGoing = false;
-				return reports;
-			}
+		} catch (error) {
+			logger.warn('getReportCount - Request failed');
 		}
+		return await reportCountData;
+	},
+
+	/**
+	 * Fetch an array of Reports
+	 *
+	 * @return {Array}
+	 */
+
+	getReports: async (reportType, reportStatus, start, url = capiURL, limit = settings.global.capiLimit) => {
+		let reportsURL = url + `/${reportType}reports?reportStatus=${reportStatus}`;
+
+		let reportData = [];
+		try {
+			reportData = await fetchTools.fetchRetry(reportsURL, settings.global.retryCount, settings.global.delay, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+		} catch (error) {
+			logger.warn('getReports - Request failed');
+		}
+		return await reportData;
 	},
 
 	// Update report based on type and ID
 	updateReport: async (reportType, reportID, reportData, jwt, url = capiURL) => {
 		let reportURL = url + `/${reportType}reports/${reportID}`;
-		let response = await fetchTools.fetch_retry(5, reportURL, {
-			method: 'PUT',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${jwt}`,
-			},
-			body: JSON.stringify(reportData),
-		});
 
-		return await response.json();
+		try {
+			let updatedReportData = await fetchTools.fetchRetry(reportURL, settings.global.retryCount, settings.global.delay, {
+				method: 'PUT',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+					Authorization: `Bearer ${jwt}`,
+				},
+				body: JSON.stringify(reportData),
+			});
+			return await updatedReportData;
+		} catch (error) {
+			logger.warn('updateReport - Request failed');
+		}
 	},
 
 	// Get a single site by ID or fetch all sites matching a body

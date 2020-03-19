@@ -158,7 +158,7 @@ if (params.includes('--now'.toLowerCase()) === true) {
 
 if (isCron === true) {
 	logger.start('Starting in cron mode');
-	cron.schedule(settings.scripts[scriptName].cron[settings.global.nodeID], () => {
+	cron.schedule(settings.scripts[scriptName].cron[process.env.NODEID], () => {
 		update();
 	});
 }
