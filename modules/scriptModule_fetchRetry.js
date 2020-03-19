@@ -3,14 +3,14 @@ let logger = require('perfect-logger');
 let settings = require('../settings.json');
 
 module.exports = {
-	fetchRetry: async (url, retryCount = settings.global.retryCount, delay = (settings.global.delay * 100), options) => {
+	fetchRetry: async (url, retryCount = settings.global.retryCount, delay = settings.global.delay * 100, options) => {
 		options.retries = retryCount;
 		options.retryDelay = delay;
 		options.retryOn = (attempt, error, response) => {
 			if (attempt >= retryCount) {
 				response = {};
-				logger.crit(error.message)
-				return false
+				logger.crit(error.message);
+				return false;
 			}
 			if (response.status === 429) {
 				logger.warn(`Rate limit Exceeded, retrying in: ${options.retryDelay}ms Attempt number: ${attempt + 1}`);
@@ -22,8 +22,8 @@ module.exports = {
 			}
 		};
 
-		let data = await fetch(url, options)
-		
-		return data.json()
+		let data = await fetch(url, options);
+
+		return data.json();
 	},
 };

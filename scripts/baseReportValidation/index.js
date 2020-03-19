@@ -138,7 +138,7 @@ const validate = async () => {
 
 					console.log(reportChecked.checklist);
 
-					await delay(8000);
+					await delay(1500);
 				}
 			} else {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);

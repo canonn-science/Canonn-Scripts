@@ -92,32 +92,99 @@ module.exports = {
 		};
 
 		logger.info('--> Running Validation Checks');
+		let stopValidation = false;
 
 		// Check CMDR/Client Blacklist
 		let isBlacklisted = await checkTools.blacklist(reportData, reportChecklist);
 
 		if (isBlacklisted) {
 			reportChecklist = isBlacklisted;
+
+			if (reportChecklist.valid.reportStatus !== undefined) {
+				stopValidation = true;
+			}
 		} else {
 			logger.warn('<-- Validation failed due to error on blacklist');
+			reportChecklist.valid = reportStatus.network;
+			stopValidation = true;
 		}
 
 		// Check for System (CAPI/EDSM)
-		//let checkSystem = await capi.getSystem(reportData.systemName, jwt, capiURL);
+		if (stopValidation === false) {
+			let checkSystem = await checkTools.system(reportData, reportChecklist);
+
+			if (checkSystem) {
+				reportChecklist = checkSystem;
+
+				if (
+					reportChecklist.capiv2.system.checked === false ||
+					reportChecklist.edsm.system.checked === false ||
+					reportChecklist.edsm.system.exists === false ||
+					reportChecklist.edsm.system.hasCoords === false ||
+					reportChecklist.edsm.system.data === undefined
+				) {
+					stopValidation = true;
+				}
+			} else {
+				logger.warn('<-- Validation failed due to error on System Check');
+				reportChecklist.valid = reportStatus.network;
+				stopValidation = true;
+			}
+		}
 
 		// Check for Body (CAPI/EDSM)
-		//let checkBody = await capi.getBody(reportData.bodyName, jwt, capiURL);
+		if (stopValidation === false) {
+			let checkBody = await checkTools.body(reportData, reportChecklist);
+
+			if (checkBody) {
+				reportChecklist = checkBody;
+
+				if (
+					reportChecklist.capiv2.body.checked === false ||
+					reportChecklist.edsm.body.checked === false ||
+					reportChecklist.edsm.body.exists === false ||
+					reportChecklist.edsm.body.data === undefined
+				) {
+					stopValidation = true;
+				}
+			} else {
+				logger.warn('<-- Validation failed due to error on Body Check');
+				reportChecklist.valid = reportStatus.network;
+				stopValidation = true;
+			}
+		}
 
 		// Check Existing Site/Duplicate
-		//let isDuplicate = await checkTools.duplicate(reportData, jwt, capiURL);
+		if (stopValidation === false) {
+			let checkDuplicate = await checkTools.duplicate(reportData, reportChecklist);
 
-		// Check for update existing site
+			if (checkDuplicate) {
+				reportChecklist = checkDuplicate;
+
+				if (
+					reportChecklist.capiv2.duplicate.isDuplicate === true ||
+					reportChecklist.capiv2.duplicate.site !== {} ||
+					reportChecklist.capiv2.duplicate.checkedFrontierID === false ||
+					reportChecklist.capiv2.duplicate.checkedHaversine === false
+				) {
+					stopValidation = true;
+				}
+			} else {
+				logger.warn('<-- Validation failed due to error on Duplicate Check');
+				reportChecklist.valid = reportStatus.network;
+				stopValidation = true;
+			}
+		}
 
 		// Check if Type is valid
-		//let checkType = await capi.getType(reportData.type, jwt, capiURL);
+		if (stopValidation === false) {
+			//let checkType = await capi.getType(reportData.type, jwt, capiURL);
+		}
 
 		// Check for CMDR
-		//let checkCMDR = await capi.getCMDR(reportData.cmdrName, jwt, capiURL);
+		if (stopValidation === false) {
+			//let checkCMDR = await capi.getCMDR(reportData.cmdrName, jwt, capiURL);
+		}
 
 		// Validate
 		if (reportChecklist.valid.reason === undefined && reportChecklist.valid.reportStatus === undefined) {

@@ -72,4 +72,98 @@ module.exports = {
 
 		return checklist;
 	},
+
+	system: async (data, checklist) => {
+		if (!data.systemName) {
+			logger.warn('<-- Missing System Name');
+			checklist.valid = reportStatus.edsmSystem;
+			return checklist;
+		}
+
+		let checkSystem = await capi.getSystem(data.systemName);
+
+		if (checkSystem.length === 1 && checkSystem[0].systemName.toLowerCase() === data.systemName.toLowerCase()) {
+			checklist.capiv2.system = {
+				add: false,
+				checked: true,
+				exists: true,
+				data: checkSystem[0],
+			};
+			return checklist;
+		} else if (checkSystem.length > 1) {
+			for (i = 0; i < checkSystem.length; i++) {
+				if (checkSystem[0].systemName.toLowerCase() === data.systemName.toLowerCase()) {
+					checklist.capiv2.system = {
+						add: false,
+						checked: true,
+						exists: true,
+						data: checkSystem[0],
+					};
+					return checklist;
+				}
+			}
+		} else if (checkSystem.length < 1) {
+			logger.info('<-- System not in CAPI');
+			checklist.capiv2.system = {
+				add: true,
+				checked: true,
+				exists: false,
+				data: {},
+			};
+
+			logger.info('--> Asking EDSM');
+			let checkEDSM = await edsm.getSystemEDSM(data.systemName);
+
+			if (
+				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
+				checkEDSM.id &&
+				checkEDSM.coords.x &&
+				checkEDSM.coords.y &&
+				checkEDSM.coords.z
+			) {
+				checklist.edsm.system = {
+					checked: true,
+					exists: true,
+					hasCoords: true,
+					data: checkEDSM,
+				};
+				return checklist;
+			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
+				checklist.edsm.system = {
+					checked: true,
+				};
+
+				checklist.valid = reportStatus.edsmSystem;
+				return checklist;
+			} else if (
+				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
+				(!checkEDSM.coords || !checkEDSM.coords.x || !checkEDSM.coords.y || !checkEDSM.coords.z)
+			) {
+				checklist.edsm.system = {
+					checked: true,
+					exists: true,
+					hasCoords: false,
+					data: checkEDSM,
+				};
+
+				checklist.valid = reportStatus.edsmSystem;
+				return checklist;
+			} else {
+				checklist.edsm.system = {
+					checked: false,
+				};
+
+				checklist.valid = reportStatus.edsmSystem;
+
+				return checklist;
+			}
+		} else {
+			checklist.valid = reportStatus.edsmSystem;
+			return checklist;
+		}
+	},
+
+	body: async (data, checklist) => {},
+
+	duplicate: async (data, checklist) => {},
 };
