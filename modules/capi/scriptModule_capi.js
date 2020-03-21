@@ -487,12 +487,11 @@ module.exports = {
 	},
 
 	// Get a single site by ID or fetch all sites matching a body
-	getSites: async (reportType, body, siteID, url = capiURL) => {
+	getSites: async (reportType, body, siteID, url = capiURL, limit = settings.global.capiLimit) => {
 		let sites = [];
 		let siteData = null;
 		let keepGoing = true;
 		let API_START = 0;
-		let API_LIMIT = 1000;
 
 		var sitesURL;
 		if (siteID && (!body || body === null || typeof body === 'undefined')) {
@@ -500,12 +499,13 @@ module.exports = {
 		} else {
 			sitesURL =
 				url +
-				`/${reportType}sites?_limit=${API_LIMIT}&_start=${API_START}&body.bodyName=` +
+				`/${reportType}sites?_limit=${limit}&_start=${API_START}&body.bodyName=` +
 				encodeURIComponent(body);
 		}
 
 		while (keepGoing) {
-			let response = await fetchTools.fetch_retry(5, sitesURL, {
+			console.log(sitesURL);
+			let siteData = await fetchTools.fetchRetry(sitesURL, settings.global.retryCount, settings.global.delay, {
 				method: 'GET',
 				headers: {
 					Accept: 'application/json',
@@ -513,11 +513,12 @@ module.exports = {
 				},
 			});
 
-			siteData = await response.json();
-			sites.push.apply(sites, siteData);
-			API_START += API_LIMIT;
+			console.log(siteData.length);
 
-			if (siteData.length < API_LIMIT) {
+			sites.push.apply(sites, siteData);
+			API_START += limit;
+
+			if (siteData.length < limit) {
 				keepGoing = false;
 				return sites;
 			}
@@ -639,6 +640,11 @@ module.exports = {
 				reason: `[${dateNow}] - [DECLINED] - Report is missing a CMDR`,
 				reportStatus: 'declined',
 			},
+			missingFDev: {
+				isValid: false,
+				reason: `[${dateNow}] - [DECLINED] - Report is missing a Frontier ID`,
+				reportStatus: 'declined',
+			},
 			missingClient: {
 				isValid: false,
 				reason: `[${dateNow}] - [DECLINED] - Report is missing a Client Version`,
@@ -649,6 +655,11 @@ module.exports = {
 				reason: `[${dateNow}] - [ISSUE] - System does not exist in EDSM`,
 				reportStatus: 'issue',
 			},
+			edsmCoords: {
+				isValid: false,
+				reason: `[${dateNow}] - [ISSUE] - System missing Coords in EDSM`,
+				reportStatus: 'issue',
+			},
 			edsmBody: {
 				isValid: false,
 				reason: `[${dateNow}] - [ISSUE] - Body does not exist in EDSM`,
@@ -656,7 +667,7 @@ module.exports = {
 			},
 			updated: {
 				isValid: true,
-				reason: `[${dateNow}] - [UPDATE] - Report can update existing site`,
+				reason: `[${dateNow}] - [UPDATED] - Report has updated an existing site`,
 				reportStatus: 'updated',
 			},
 			accepted: {

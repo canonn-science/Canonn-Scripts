@@ -13,77 +13,58 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	blacklist: async (data, checklist) => {
-		if (!data.cmdrName) {
-			logger.warn('<-- Missing CMDR');
-			checklist.valid = reportStatus.missingCMDR;
-			return checklist;
-		} else if (!data.clientVersion) {
-			logger.warn('<-- Missing Client');
-			checklist.valid = reportStatus.missingClient;
-			return checklist;
-		}
+	blacklist: async checklist => {
+		let data = checklist.report.data;
 
+		// Check CMDR
 		let checkCMDR = await capi.checkBlacklist('cmdr', data.cmdrName);
 
 		if (checkCMDR.length > 0) {
 			for (i = 0; i < checkCMDR.length; i++) {
 				if (data.cmdrName.toLowerCase() === checkCMDR[i].cmdrName.toLowerCase()) {
-					logger.warn('<-- CMDR Blacklisted');
-					checklist.valid = reportStatus.blacklisted;
-
-					checklist.blacklists.cmdr = {
+					checklist.checks.blacklists.cmdr = {
 						checked: true,
 						blacklisted: true,
 					};
-
 					return checklist;
 				}
 			}
 		} else {
-			checklist.blacklists.cmdr = {
+			checklist.checks.blacklists.cmdr = {
 				checked: true,
 				blacklisted: false,
 			};
 		}
 
+		// Check Client
 		let checkClient = await capi.checkBlacklist('client', data.clientVersion);
 
 		if (checkClient.length > 0) {
 			for (i = 0; i < checkClient.length; i++) {
 				if (data.clientVersion.toLowerCase() === checkClient[i].version.toLowerCase()) {
-					logger.warn('<-- Client Blacklisted');
-					checklist.valid = reportStatus.blacklisted;
-
-					checklist.blacklists.client = {
+					checklist.checks.blacklists.client = {
 						checked: true,
 						blacklisted: true,
 					};
-
 					return checklist;
 				}
 			}
 		} else {
-			checklist.blacklists.client = {
+			checklist.checks.blacklists.client = {
 				checked: true,
 				blacklisted: false,
 			};
 		}
-
 		return checklist;
 	},
 
-	system: async (data, checklist) => {
-		if (!data.systemName) {
-			logger.warn('<-- Missing System Name');
-			checklist.valid = reportStatus.edsmSystem;
-			return checklist;
-		}
+	system: async checklist => {
+		let data = checklist.report.data;
 
 		let checkSystem = await capi.getSystem(data.systemName);
 
 		if (checkSystem.length === 1 && checkSystem[0].systemName.toLowerCase() === data.systemName.toLowerCase()) {
-			checklist.capiv2.system = {
+			checklist.checks.capiv2.system = {
 				add: false,
 				checked: true,
 				exists: true,
@@ -93,7 +74,7 @@ module.exports = {
 		} else if (checkSystem.length > 1) {
 			for (i = 0; i < checkSystem.length; i++) {
 				if (checkSystem[i].systemName.toLowerCase() === data.systemName.toLowerCase()) {
-					checklist.capiv2.system = {
+					checklist.checks.capiv2.system = {
 						add: false,
 						checked: true,
 						exists: true,
@@ -103,15 +84,13 @@ module.exports = {
 				}
 			}
 		} else if (checkSystem.length < 1) {
-			logger.info('<-- System not in CAPI');
-			checklist.capiv2.system = {
+			checklist.checks.capiv2.system = {
 				add: true,
 				checked: true,
 				exists: false,
 				data: {},
 			};
 
-			logger.info('--> Asking EDSM');
 			let checkEDSM = await edsm.getSystemEDSM(data.systemName);
 
 			if (
@@ -121,7 +100,7 @@ module.exports = {
 				checkEDSM.coords.y &&
 				checkEDSM.coords.z
 			) {
-				checklist.edsm.system = {
+				checklist.checks.edsm.system = {
 					checked: true,
 					exists: true,
 					hasCoords: true,
@@ -129,67 +108,48 @@ module.exports = {
 				};
 				return checklist;
 			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
-				checklist.edsm.system = {
+				checklist.checks.edsm.system = {
 					checked: true,
 					exists: false,
 					hasCoords: false,
 					data: {},
 				};
-
-				checklist.valid = reportStatus.edsmSystem;
 				return checklist;
 			} else if (
 				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
 				(!checkEDSM.coords || !checkEDSM.coords.x || !checkEDSM.coords.y || !checkEDSM.coords.z)
 			) {
-				checklist.edsm.system = {
+				checklist.checks.edsm.system = {
 					checked: true,
 					exists: true,
 					hasCoords: false,
 					data: checkEDSM,
 				};
-
-				checklist.valid = reportStatus.edsmSystem;
 				return checklist;
 			} else {
-				checklist.edsm.system = {
+				checklist.checks.edsm.system = {
 					checked: false,
 					exists: false,
 					hasCoords: false,
 					data: {},
 				};
-
-				checklist.valid = reportStatus.edsmSystem;
-
 				return checklist;
 			}
 		} else {
-			checklist.valid = reportStatus.edsmSystem;
 			return checklist;
 		}
 	},
 
-	body: async (data, checklist, bodyCache) => {
-		if (!data.bodyName) {
-			logger.warn('<-- Missing Body Name');
-			checklist.valid = reportStatus.edsmBody;
-			return checklist;
-		}
+	body: async (checklist, bodyCache) => {
+		let data = checklist.report.data;
 
+		// Check CAPI
 		let checkBody = await capi.getBody(data.bodyName);
 
-		if (checkBody.length === 1 && checkBody[0].bodyName.toLowerCase() === data.bodyName.toLowerCase()) {
-			checklist.capiv2.body = {
-				add: false,
-				checked: true,
-				exists: true,
-				data: checkBody[0],
-			};
-			return checklist;
-		} else if (checkBody.length > 1) {
+		if (checkBody.length >= 1) {
 			for (i = 0; i < checkBody.length; i++) {
 				if (checkBody[i].bodyName.toLowerCase() === data.bodyName.toLowerCase()) {
-					checklist.capiv2.body = {
+					checklist.checks.capiv2.body = {
 						add: false,
 						checked: true,
 						exists: true,
@@ -199,8 +159,7 @@ module.exports = {
 				}
 			}
 		} else if (checkBody.length < 1) {
-			logger.info('<-- Body not in CAPI');
-			checklist.capiv2.body = {
+			checklist.checks.capiv2.body = {
 				add: true,
 				checked: true,
 				exists: false,
@@ -208,14 +167,12 @@ module.exports = {
 			};
 
 			// Check Body Cache
-			logger.info('--> Checking EDSM Cache');
-
 			for (c = 0; c < bodyCache.length; c++) {
 				if (bodyCache[c].name.toLowerCase() === data.systemName.toLowerCase()) {
 					let bodies = bodyCache[c].bodies;
 					for (cb = 0; cb < bodies.length; cb++) {
 						if (bodies[cb].name.toLowerCase() === data.bodyName.toLowerCase()) {
-							checklist.edsm.body = {
+							checklist.checks.edsm.body = {
 								checked: true,
 								exists: true,
 								data: bodies[cb],
@@ -226,7 +183,7 @@ module.exports = {
 				}
 			}
 
-			logger.info('--> Asking EDSM');
+			// Check EDSM
 			let checkEDSM = await edsm.getBodyEDSM(data.systemName);
 
 			if (checkEDSM.name.toLowerCase() === data.systemName.toLowerCase()) {
@@ -236,7 +193,7 @@ module.exports = {
 				// Continue validation
 				for (b = 0; b < checkEDSM.bodies.length; b++) {
 					if (checkEDSM.bodies[b].name.toLowerCase() === data.bodyName.toLowerCase()) {
-						checklist.edsm.body = {
+						checklist.checks.edsm.body = {
 							checked: true,
 							exists: true,
 							data: checkEDSM.bodies[b],
@@ -245,30 +202,58 @@ module.exports = {
 					}
 				}
 			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
-				checklist.edsm.body = {
+				checklist.checks.edsm.body = {
 					checked: true,
 					exists: false,
 					data: {},
 				};
-
-				checklist.valid = reportStatus.edsmBody;
 				return checklist;
 			} else {
-				checklist.edsm.body = {
+				checklist.checks.edsm.body = {
 					checked: false,
 					exists: false,
 					data: {},
 				};
-
-				checklist.valid = reportStatus.edsmBody;
-
 				return checklist;
 			}
 		} else {
-			checklist.valid = reportStatus.edsmBody;
 			return checklist;
 		}
 	},
 
-	duplicate: async (data, checklist) => {},
+	duplicate: async checklist => {
+		let data = checklist.report.data;
+
+		let checkDuplicate = await capi.getSites(checklist.report.site, data.bodyName);
+
+		if (!checkDuplicate || checkDuplicate === []) {
+			checklist.checks.duplicate = {
+				createSite: true,
+				updateSite: false,
+				checkedHaversine: false,
+				checkedFrontierID: false,
+				isDuplicate: false,
+				distance: undefined,
+				site: {},
+			};
+		} else {
+			for (i = 0; i < checkDuplicate; i++) {
+				if (checkDuplicate[i].bodyName.toLowerCase() === data.bodyName.toLowerCase()) {
+					// Do duplication checks
+				}
+			}
+		}
+	},
+
+	update: async checklist => {
+		let data = checklist.report.data;
+	},
+
+	type: async checklist => {
+		let data = checklist.report.data;
+	},
+
+	cmdr: async checklist => {
+		let data = checklist.report.data;
+	},
 };
