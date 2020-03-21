@@ -92,12 +92,12 @@ module.exports = {
 			return checklist;
 		} else if (checkSystem.length > 1) {
 			for (i = 0; i < checkSystem.length; i++) {
-				if (checkSystem[0].systemName.toLowerCase() === data.systemName.toLowerCase()) {
+				if (checkSystem[i].systemName.toLowerCase() === data.systemName.toLowerCase()) {
 					checklist.capiv2.system = {
 						add: false,
 						checked: true,
 						exists: true,
-						data: checkSystem[0],
+						data: checkSystem[i],
 					};
 					return checklist;
 				}
@@ -131,6 +131,9 @@ module.exports = {
 			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
 				checklist.edsm.system = {
 					checked: true,
+					exists: false,
+					hasCoords: false,
+					data: {},
 				};
 
 				checklist.valid = reportStatus.edsmSystem;
@@ -151,6 +154,9 @@ module.exports = {
 			} else {
 				checklist.edsm.system = {
 					checked: false,
+					exists: false,
+					hasCoords: false,
+					data: {},
 				};
 
 				checklist.valid = reportStatus.edsmSystem;
@@ -163,7 +169,106 @@ module.exports = {
 		}
 	},
 
-	body: async (data, checklist) => {},
+	body: async (data, checklist, bodyCache) => {
+		if (!data.bodyName) {
+			logger.warn('<-- Missing Body Name');
+			checklist.valid = reportStatus.edsmBody;
+			return checklist;
+		}
+
+		let checkBody = await capi.getBody(data.bodyName);
+
+		if (checkBody.length === 1 && checkBody[0].bodyName.toLowerCase() === data.bodyName.toLowerCase()) {
+			checklist.capiv2.body = {
+				add: false,
+				checked: true,
+				exists: true,
+				data: checkBody[0],
+			};
+			return checklist;
+		} else if (checkBody.length > 1) {
+			for (i = 0; i < checkBody.length; i++) {
+				if (checkBody[i].bodyName.toLowerCase() === data.bodyName.toLowerCase()) {
+					checklist.capiv2.body = {
+						add: false,
+						checked: true,
+						exists: true,
+						data: checkBody[i],
+					};
+					return checklist;
+				}
+			}
+		} else if (checkBody.length < 1) {
+			logger.info('<-- Body not in CAPI');
+			checklist.capiv2.body = {
+				add: true,
+				checked: true,
+				exists: false,
+				data: {},
+			};
+
+			// Check Body Cache
+			logger.info('--> Checking EDSM Cache');
+
+			for (c = 0; c < bodyCache.length; c++) {
+				if (bodyCache[c].name.toLowerCase() === data.systemName.toLowerCase()) {
+					let bodies = bodyCache[c].bodies;
+					for (cb = 0; cb < bodies.length; cb++) {
+						if (bodies[cb].name.toLowerCase() === data.bodyName.toLowerCase()) {
+							checklist.edsm.body = {
+								checked: true,
+								exists: true,
+								data: bodies[cb],
+							};
+							return checklist;
+						}
+					}
+				}
+			}
+
+			logger.info('--> Asking EDSM');
+			let checkEDSM = await edsm.getBodyEDSM(data.systemName);
+
+			if (checkEDSM.name.toLowerCase() === data.systemName.toLowerCase()) {
+				// Add EDSM looking to cache
+				checklist.addToCache = checkEDSM;
+
+				// Continue validation
+				for (b = 0; b < checkEDSM.bodies.length; b++) {
+					if (checkEDSM.bodies[b].name.toLowerCase() === data.bodyName.toLowerCase()) {
+						checklist.edsm.body = {
+							checked: true,
+							exists: true,
+							data: checkEDSM.bodies[b],
+						};
+						return checklist;
+					}
+				}
+			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
+				checklist.edsm.body = {
+					checked: true,
+					exists: false,
+					data: {},
+				};
+
+				checklist.valid = reportStatus.edsmBody;
+				return checklist;
+			} else {
+				checklist.edsm.body = {
+					checked: false,
+					exists: false,
+					data: {},
+				};
+
+				checklist.valid = reportStatus.edsmBody;
+
+				return checklist;
+			}
+		} else {
+			checklist.valid = reportStatus.edsmBody;
+			return checklist;
+		}
+	},
 
 	duplicate: async (data, checklist) => {},
 };

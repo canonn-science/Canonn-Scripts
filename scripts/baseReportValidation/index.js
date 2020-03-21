@@ -18,6 +18,7 @@ let jwt;
 // Load params
 let params = process.argv;
 let reportKeys = settings.scripts[scriptName].acceptedTypes;
+let reportStatus = capi.reportStatus();
 
 // Start the logger
 loginit(scriptName);
@@ -122,6 +123,9 @@ const validate = async () => {
 		logger.start('Validating Reports');
 		logger.info('----------------');
 
+		// Initialize EDSM bodyCache to decrease EDSM API calls
+		let bodyCache = [];
+
 		for (l = 0; l < reportKeys.length; l++) {
 			if (reportCounts.data[reportKeys[l]].reports.pending > 0) {
 				logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`);
@@ -134,9 +138,22 @@ const validate = async () => {
 						}]`
 					);
 
-					let reportChecked = await validateTools.baseReport(reportKeys[l], toValidate[v], jwt);
+					let reportChecked = await validateTools.baseReport(reportKeys[l], toValidate[v], jwt, bodyCache);
 
-					console.log(reportChecked.checklist);
+					// Push any new EDSM body lookups to cache based on if system name exists
+					if (
+						typeof reportChecked.addToCache !== 'undefined' &&
+						bodyCache.findIndex(
+							x => x.name.toLowerCase() == reportChecked.addToCache.name.toLowerCase()
+						) === -1
+					) {
+						logger.info(`<-- Added body to cache [${bodyCache.length + 1}]`);
+						bodyCache.push(reportChecked.addToCache);
+					}
+
+					if (reportChecked.checklist.valid.reason !== reportStatus.network.reason) {
+						console.log(reportChecked.checklist);
+					}
 
 					await delay(1500);
 				}
@@ -146,6 +163,9 @@ const validate = async () => {
 			logger.info('----------------');
 		}
 		logger.stop('Report validation complete');
+		logger.info('----------------');
+		logger.stop('Clearing EDSM cache');
+		bodyCache = [];
 	}
 
 	logger.stop('----------------');

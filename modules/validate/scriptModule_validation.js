@@ -22,7 +22,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	baseReport: async (reportType, reportData, jwt) => {
+	baseReport: async (reportType, reportData, jwt, bodyCache) => {
 		let reportChecklist = {
 			reportType: reportType + 'reports',
 			reportID: reportData.id,
@@ -94,19 +94,33 @@ module.exports = {
 		logger.info('--> Running Validation Checks');
 		let stopValidation = false;
 
+		// Check if beta
+		if (reportData.isBeta === true) {
+			logger.warn('<-- Validation failed as report was on beta');
+			reportChecklist.valid = reportStatus.beta;
+			stopValidation = true;
+		} else if (reportData.isBeta == null) {
+			logger.warn('<-- Validation failed as beta is not set');
+			stopValidation = true;
+		} else {
+			reportChecklist.isBeta = reportData.isBeta;
+		}
+
 		// Check CMDR/Client Blacklist
-		let isBlacklisted = await checkTools.blacklist(reportData, reportChecklist);
+		if (stopValidation === false) {
+			let isBlacklisted = await checkTools.blacklist(reportData, reportChecklist);
 
-		if (isBlacklisted) {
-			reportChecklist = isBlacklisted;
+			if (isBlacklisted) {
+				reportChecklist = isBlacklisted;
 
-			if (reportChecklist.valid.reportStatus !== undefined) {
+				if (reportChecklist.valid.reportStatus !== undefined) {
+					stopValidation = true;
+				}
+			} else {
+				logger.warn('<-- Validation failed due to error on blacklist');
+				reportChecklist.valid = reportStatus.network;
 				stopValidation = true;
 			}
-		} else {
-			logger.warn('<-- Validation failed due to error on blacklist');
-			reportChecklist.valid = reportStatus.network;
-			stopValidation = true;
 		}
 
 		// Check for System (CAPI/EDSM)
@@ -116,12 +130,15 @@ module.exports = {
 			if (checkSystem) {
 				reportChecklist = checkSystem;
 
-				if (
-					reportChecklist.capiv2.system.checked === false ||
-					reportChecklist.edsm.system.checked === false ||
-					reportChecklist.edsm.system.exists === false ||
-					reportChecklist.edsm.system.hasCoords === false ||
-					reportChecklist.edsm.system.data === undefined
+				if (reportChecklist.capiv2.system.checked === false) {
+					stopValidation = true;
+				} else if (
+					reportChecklist.capiv2.system.checked === true &&
+					reportChecklist.capiv2.system.exists === false &&
+					(reportChecklist.edsm.system.checked === false ||
+						reportChecklist.edsm.system.exists === false ||
+						reportChecklist.edsm.system.hasCoords === false ||
+						reportChecklist.edsm.system.data === undefined)
 				) {
 					stopValidation = true;
 				}
@@ -134,7 +151,7 @@ module.exports = {
 
 		// Check for Body (CAPI/EDSM)
 		if (stopValidation === false) {
-			let checkBody = await checkTools.body(reportData, reportChecklist);
+			let checkBody = await checkTools.body(reportData, reportChecklist, bodyCache);
 
 			if (checkBody) {
 				reportChecklist = checkBody;
@@ -203,6 +220,7 @@ module.exports = {
 		return {
 			checklist: reportChecklist,
 			data: {},
+			addToCache: reportChecklist.addToCache,
 		};
 	},
 

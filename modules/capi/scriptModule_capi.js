@@ -308,15 +308,19 @@ module.exports = {
 			bodyURL = url + '/bodies?bodyName=' + encodeURIComponent(body);
 		}
 
-		let response = await fetchTools.fetch_retry(5, bodyURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			},
-		});
-
-		return await response.json();
+		let bodyData = [];
+		try {
+			bodyData = await fetchTools.fetchRetry(bodyURL, settings.global.retryCount, settings.global.delay, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+		} catch (error) {
+			logger.warn('getBody - Request failed');
+		}
+		return await bodyData;
 	},
 
 	/**
