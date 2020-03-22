@@ -200,6 +200,11 @@ module.exports = {
 						return checklist;
 					}
 				}
+
+				if (checklist.checks.edsm.body.exists === false) {
+					checklist.checks.edsm.body.checked = true;
+					return checklist;
+				}
 			} else if (
 				checkEDSM.bodies.length === 0 ||
 				!checkEDSM ||
