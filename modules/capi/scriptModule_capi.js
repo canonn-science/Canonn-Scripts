@@ -15,6 +15,27 @@ let dateNow = moment()
 	.utc()
 	.format('YYYY-MM-DD hh:mm:ss');
 
+// Used to fetch the highest siteID to create a new site
+let getSiteID = async (siteType, url = capiURL) => {
+	let siteIDURL = url + `/${siteType}sites?_limit=1&_sort=siteID:desc`;
+	const response = await fetchTools.fetchRetry(siteIDURL, settings.global.retryCount, settings.global.delay, {
+		method: 'GET',
+		headers: {
+			Accept: 'application/json',
+			'Content-Type': 'application/json',
+		},
+	});
+
+	let siteIDData = await response;
+
+	if (!Array.isArray(siteIDData) || !siteIDData.length) {
+		return 1;
+	} else {
+		let newSiteID = siteIDData[0].siteID + 1;
+		return newSiteID;
+	}
+};
+
 module.exports = {
 	/**
 	 * Login to the Canonn API
@@ -149,7 +170,7 @@ module.exports = {
 		if (cmdrData.cmdrName === null || typeof cmdrData.cmdrName === 'undefined') {
 			return {};
 		} else {
-			let response = await fetchTools.fetch_retry(5, cmdrURL, {
+			let response = await fetchTools.fetchRetry(cmdrURL, settings.global.retryCount, settings.global.delay, {
 				method: 'POST',
 				headers: {
 					Accept: 'application/json',
@@ -242,7 +263,7 @@ module.exports = {
 		if (systemData.systemName === null || typeof systemData.systemName === 'undefined') {
 			return {};
 		} else {
-			let response = await fetchTools.fetch_retry(systemURL, settings.global.retryCount, settings.global.delay, {
+			let response = await fetchTools.fetchRetry(systemURL, settings.global.retryCount, settings.global.delay, {
 				method: 'POST',
 				headers: {
 					Accept: 'application/json',
@@ -252,7 +273,7 @@ module.exports = {
 				body: JSON.stringify(systemData),
 			});
 
-			return await response.json();
+			return await response;
 		}
 	},
 
@@ -382,7 +403,7 @@ module.exports = {
 		if (bodyData.bodyName === null || typeof bodyData.bodyName === 'undefined') {
 			return {};
 		} else {
-			let response = await fetchTools.fetch_retry(5, bodyURL, {
+			let response = await fetchTools.fetchRetry(bodyURL, settings.global.retryCount, settings.global.delay, {
 				method: 'POST',
 				headers: {
 					Accept: 'application/json',
@@ -392,7 +413,7 @@ module.exports = {
 				body: JSON.stringify(bodyData),
 			});
 
-			return await response.json();
+			return await response;
 		}
 	},
 
@@ -531,35 +552,14 @@ module.exports = {
 		}
 	},
 
-	// Used to fetch the highest siteID to create a new site
-	getSiteID: async (reportType, url = capiURL) => {
-		let siteIDURL = url + `/${reportType}sites?_limit=1&_sort=siteID:desc`;
-		const response = await fetchTools.fetch_retry(5, siteIDURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			},
-		});
-
-		let siteIDData = await response.json();
-
-		if (!Array.isArray(siteIDData) || !siteIDData.length) {
-			return 1;
-		} else {
-			let newSiteID = siteIDData[0].siteID + 1;
-			return newSiteID;
-		}
-	},
-
 	// Create site if report is valid
-	createSite: async (reportType, siteData, jwt, url = capiURL) => {
-		let newSiteID = await getSiteID(url, reportType);
+	createSite: async (siteType, siteData, jwt, url = capiURL) => {
+		if (!siteData.siteID) {
+			siteData.siteID = await getSiteID(siteType, url);
+		}
 
-		siteData.siteID = newSiteID;
-
-		let createSiteURL = url + `/${reportType}sites`;
-		let response = await fetchTools.fetch_retry(5, createSiteURL, {
+		let createSiteURL = url + `/${siteType}sites`;
+		let response = await fetchTools.fetchRetry(createSiteURL, settings.global.retryCount, settings.global.delay, {
 			method: 'POST',
 			headers: {
 				Accept: 'application/json',
@@ -569,7 +569,7 @@ module.exports = {
 			body: JSON.stringify(siteData),
 		});
 
-		return await response.json();
+		return await response;
 	},
 
 	// Update site if new data exists in a report

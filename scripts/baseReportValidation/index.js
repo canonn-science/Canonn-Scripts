@@ -93,7 +93,7 @@ const resetReports = async count => {
 				} else {
 					logger.info('<-- Report reset');
 				}
-				await delay(settings.global.delay);
+				await delay(settings.global.delay * 15);
 			}
 		} else {
 			logger.info(`There are no ${reportKeys[r].toUpperCase()} reports marked as \"issue\"`);
@@ -151,7 +151,9 @@ const validate = async () => {
 						bodyCache.push(reportChecked.addToCache);
 					}
 
-					await delay(settings.global.delay);
+					console.log(reportChecked.data);
+
+					await delay(settings.global.delay * 15);
 				}
 			} else {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);

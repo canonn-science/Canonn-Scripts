@@ -2,6 +2,15 @@ const logger = require('perfect-logger');
 const checkTools = require('./scriptModule_checkTools');
 const processTools = require('./scriptModule_process');
 const capi = require('../../modules/capi/scriptModule_capi');
+const settings = require('../../settings.json');
+
+let capiURL;
+
+if (process.env.NODE_ENV) {
+	capiURL = settings.global.url[process.env.NODE_ENV.toLowerCase()];
+} else {
+	capiURL = settings.global.url.local;
+}
 
 let reportStatus = capi.reportStatus();
 
@@ -467,17 +476,26 @@ module.exports = {
 		}
 
 		// Process
+		let data = {};
 		if (reportChecklist.valid.isValid === true) {
-			logger.info('--> Report is valid, processing...');
-			processTools.valid(reportChecklist);
+			if (reportChecklist.checks.capiv2.duplicate.isDuplicate === true) {
+				logger.info('<-- Report is Duplicate');
+				let newDuplicate = await processTools.valid('duplicate', reportChecklist, jwt, capiURL);
+				data = newDuplicate;
+			} else {
+				logger.info('<-- Report is valid');
+				let newValid = await processTools.valid('new', reportChecklist, jwt, capiURL);
+				data = newValid;
+			}
 		} else {
-			logger.info('--> Report not Valid, updating report');
-			processTools.invalid(reportChecklist);
+			logger.info('<-- Report is Duplicate');
+			let newInvalid = await processTools.invalid('duplicate', reportChecklist, jwt, capiURL);
+			data = newInvalid;
 		}
 
 		return {
 			checklist: reportChecklist,
-			data: {},
+			data: data,
 			addToCache: reportChecklist.addToCache,
 		};
 	},
