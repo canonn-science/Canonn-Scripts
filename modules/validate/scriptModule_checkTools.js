@@ -1,6 +1,6 @@
-const logger = require('perfect-logger');
 const edsm = require('../../modules/edsm/scriptModule_edsm');
 const capi = require('../../modules/capi/scriptModule_capi');
+const utils = require('../utils/scriptModule_utils');
 const settings = require('../../settings.json');
 const delay = ms => new Promise(res => setTimeout(res, ms));
 
@@ -226,8 +226,8 @@ module.exports = {
 
 		let checkDuplicate = await capi.getSites(checklist.report.site, data.bodyName);
 
-		if (!checkDuplicate || checkDuplicate === []) {
-			checklist.checks.duplicate = {
+		if (!Array.isArray(checkDuplicate) || !checkDuplicate.length) {
+			checklist.checks.capiv2.duplicate = {
 				createSite: true,
 				updateSite: false,
 				checkedHaversine: false,
@@ -237,20 +237,130 @@ module.exports = {
 				site: {},
 			};
 		} else {
-			for (i = 0; i < checkDuplicate; i++) {
-				if (checkDuplicate[i].bodyName.toLowerCase() === data.bodyName.toLowerCase()) {
-					// Do duplication checks
+			for (i = 0; i < checkDuplicate.length; i++) {
+				let internalChecks = {
+					distance: undefined,
+					checkedHav: false,
+					FIDMatch: false,
+					checkedFID: false,
+				};
+				if (
+					checkDuplicate[i].system.systemName.toUpperCase() === data.systemName.toUpperCase() &&
+					checkDuplicate[i].body.bodyName.toUpperCase() === data.bodyName.toUpperCase() &&
+					Object.keys(checklist.checks.capiv2.duplicate.site).length == 0
+				) {
+					if (checkDuplicate[i].body.radius) {
+						let distance = await utils.haversine(
+							{
+								latitude: checkDuplicate[i].latitude,
+								longitude: checkDuplicate[i].longitude,
+							},
+							{
+								latitude: data.latitude,
+								longitude: data.longitude,
+							},
+							checkDuplicate[i].body.radius
+						);
+
+						internalChecks.distance = distance;
+						internalChecks.checkedHav = true;
+					}
+
+					if (data.frontierID === checkDuplicate[i].frontierID) {
+						internalChecks.checkedFID = true;
+						internalChecks.FIDMatch = true;
+					} else if (data.frontierID !== null || data.frontierID !== undefined) {
+						internalChecks.checkedFID = true;
+					}
+				}
+
+				if (internalChecks.distance != undefined && internalChecks.checkedHav === true) {
+					checklist.checks.capiv2.duplicate.checkedHaversine = true;
+					checklist.checks.capiv2.duplicate.distance = internalChecks.distance;
+				}
+
+				if (internalChecks.checkedFID === true) {
+					checklist.checks.capiv2.duplicate.checkedFrontierID = true;
+				}
+
+				if (internalChecks.FIDMatch === true) {
+					checklist.checks.capiv2.duplicate.isDuplicate = true;
+					checklist.checks.capiv2.duplicate.site = checkDuplicate[i];
+				}
+
+				if (internalChecks.distance <= settings.scripts.baseReportValidation.settings.duplicateRange) {
+					checklist.checks.capiv2.duplicate.isDuplicate = true;
+					checklist.checks.capiv2.duplicate.site = checkDuplicate[i];
+				} else if (
+					internalChecks.distance > settings.scripts.baseReportValidation.settings.duplicateRange &&
+					internalChecks.FIDMatch === false
+				) {
+					checklist.checks.capiv2.duplicate.isDuplicate = false;
+					checklist.checks.capiv2.duplicate.createSite = true;
 				}
 			}
 		}
+		return checklist;
 	},
 
 	update: async checklist => {
 		let data = checklist.report.data;
+
+		if (checklist.checks.capiv2.duplicate.createSite === true) {
+			checklist.checks.capiv2.duplicate.updateSite = false;
+			return checklist;
+		}
+
+		if (
+			checklist.checks.capiv2.duplicate.site.frontierID == null ||
+			(checklist.checks.capiv2.duplicate.site.frontierID == undefined && data.frontierID > 0)
+		) {
+			checklist.checks.capiv2.duplicate.updateSite = true;
+		}
+
+		if (checklist.checks.capiv2.duplicate.site.discoveredBy.cmdrName === 'zzz_Unknown') {
+			checklist.checks.capiv2.duplicate.updateSite = true;
+		}
+
+		return checklist;
 	},
 
 	type: async checklist => {
 		let data = checklist.report.data;
+
+		let checkType = await capi.getTypes(checklist.report.site);
+
+		if (!Array.isArray(checkType) || !checkType.length) {
+			checklist.checks.capiv2.type = {
+				checked: false,
+				exists: false,
+				data: {},
+			};
+		} else {
+			for (i = 0; i < checkType.length; i++) {
+				if (data.type.toLowerCase() === checkType[i].type.toLowerCase()) {
+					checklist.checks.capiv2.type = {
+						checked: true,
+						exists: true,
+						data: checkType[i],
+					};
+				} else if (data.type.toLowerCase() === checkType[i].journalName.toLowerCase()) {
+					checklist.checks.capiv2.type = {
+						checked: true,
+						exists: true,
+						data: checkType[i],
+					};
+				} else {
+					checklist.checks.capiv2.type = {
+						checked: true,
+						exists: false,
+						data: {},
+					};
+				}
+			}
+		}
+
+		return checklist;
 	},
 
 	cmdr: async checklist => {

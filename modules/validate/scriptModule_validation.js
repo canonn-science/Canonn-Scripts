@@ -218,7 +218,6 @@ module.exports = {
 						reportChecklist.checks.edsm.system.checked === false
 					) {
 						logger.warn('<-- Validation failed: Unknown Error on EDSM System');
-						console.log(reportChecklist.checks);
 						reportChecklist.valid = reportStatus.network;
 						reportChecklist.stopValidation = true;
 					} else if (
@@ -298,8 +297,8 @@ module.exports = {
 					reportChecklist = checkDuplicate;
 
 					if (
-						reportChecklist.checks.capiv2.duplicate.checkedHaversine === false ||
-						reportChecklist.checks.capiv2.duplicate.checkedFrontierID === false
+						reportChecklist.checks.capiv2.duplicate.createSite === false &&
+						reportChecklist.checks.capiv2.duplicate.isDuplicate === false
 					) {
 						logger.warn('<-- Validation failed: Error on Duplicate Check');
 						reportChecklist.valid = reportStatus.network;
@@ -327,7 +326,7 @@ module.exports = {
 
 		// Check Update
 		try {
-			if (reportChecklist.stopValidation) {
+			if (reportChecklist.stopValidation === false) {
 				let checkUpdate = await checkTools.update(reportChecklist);
 
 				if (checkUpdate) {

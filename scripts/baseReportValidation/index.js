@@ -154,8 +154,6 @@ const validate = async () => {
 					if (reportChecked.checklist.valid.reason !== reportStatus.network.reason) {
 						console.log(reportChecked.checklist);
 					}
-
-					await delay(1500);
 				}
 			} else {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);

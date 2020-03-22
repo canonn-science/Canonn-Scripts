@@ -444,7 +444,7 @@ module.exports = {
 	 */
 
 	getReports: async (reportType, reportStatus, start, url = capiURL, limit = settings.global.capiLimit) => {
-		let reportsURL = url + `/${reportType}reports?reportStatus=${reportStatus}`;
+		let reportsURL = url + `/${reportType}reports?reportStatus=${reportStatus}&_start=${start}&_limit=${limit}`;
 
 		let reportData = [];
 		try {
@@ -504,7 +504,6 @@ module.exports = {
 		}
 
 		while (keepGoing) {
-			console.log(sitesURL);
 			let siteData = await fetchTools.fetchRetry(sitesURL, settings.global.retryCount, settings.global.delay, {
 				method: 'GET',
 				headers: {
@@ -512,8 +511,6 @@ module.exports = {
 					'Content-Type': 'application/json',
 				},
 			});
-
-			console.log(siteData.length);
 
 			sites.push.apply(sites, siteData);
 			API_START += limit;
@@ -595,6 +592,32 @@ module.exports = {
 		});
 
 		return await response.json();
+	},
+
+	getTypes: async (siteType, url = capiURL, limit = settings.global.capiLimit) => {
+		let types = [];
+		let keepGoing = true;
+		let API_START = 0;
+
+		let typesURL = url + `/${siteType}types?_start=${API_START}&_limit=${limit}`;
+
+		while (keepGoing) {
+			let typesData = await fetchTools.fetchRetry(typesURL, settings.global.retryCount, settings.global.delay, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+
+			types.push.apply(types, typesData);
+			API_START += limit;
+
+			if (typesData.length < limit) {
+				keepGoing = false;
+				return types;
+			}
+		}
 	},
 
 	/**
