@@ -183,9 +183,11 @@ module.exports = {
 			// Check EDSM
 			let checkEDSM = await edsm.getBodyEDSM(data.systemName);
 
-			if (checkEDSM.name.toLowerCase() === data.systemName.toLowerCase()) {
+			if (checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() && checkEDSM.bodies.length > 0) {
 				// Add EDSM looking to cache
-				checklist.addToCache = checkEDSM;
+				if (checkEDSM.bodies.length) {
+					checklist.addToCache = checkEDSM;
+				}
 
 				// Continue validation
 				for (b = 0; b < checkEDSM.bodies.length; b++) {
@@ -198,7 +200,14 @@ module.exports = {
 						return checklist;
 					}
 				}
-			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
+			} else if (
+				checkEDSM.bodies.length === 0 ||
+				!checkEDSM ||
+				!Object.keys(checkEDSM).length ||
+				!checkEDSM.length ||
+				!checkEDSM.bodies.length ||
+				checkEDSM == undefined
+			) {
 				checklist.checks.edsm.body = {
 					checked: true,
 					exists: false,
@@ -207,7 +216,7 @@ module.exports = {
 				return checklist;
 			} else {
 				checklist.checks.edsm.body = {
-					checked: false,
+					checked: true,
 					exists: false,
 					data: {},
 				};

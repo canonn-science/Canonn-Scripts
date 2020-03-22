@@ -2,16 +2,6 @@ const logger = require('perfect-logger');
 const checkTools = require('./scriptModule_checkTools');
 const processTools = require('./scriptModule_process');
 const capi = require('../../modules/capi/scriptModule_capi');
-const settings = require('../../settings.json');
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-let capiURL;
-
-if (process.env.NODE_ENV) {
-	capiURL = settings.global.url[process.env.NODE_ENV.toLowerCase()];
-} else {
-	capiURL = settings.global.url.local;
-}
 
 let reportStatus = capi.reportStatus();
 
@@ -277,6 +267,7 @@ module.exports = {
 					}
 				} else {
 					logger.warn('<-- Validation failed: Unknown Error on Body Check');
+					console.log(reportChecklist.checks);
 					reportChecklist.valid = reportStatus.network;
 					reportChecklist.stopValidation = true;
 				}
@@ -340,7 +331,7 @@ module.exports = {
 						reportChecklist.valid = reportStatus.network;
 						reportChecklist.stopValidation = true;
 					} else if (
-						reportChecklist.checks.capiv2.duplicate.isDuplicate === true &&
+						reportChecklist.checks.capiv2.duplicate.updateSite === true &&
 						reportChecklist.checks.capiv2.duplicate.site === {}
 					) {
 						logger.warn('<-- Validation failed: Site missing on Duplicate Check');
@@ -478,13 +469,10 @@ module.exports = {
 		// Process
 		if (reportChecklist.valid.isValid === true) {
 			logger.info('--> Report is valid, processing...');
-			console.log(reportChecklist.valid);
-			console.log(reportChecklist.report.data.type);
-			console.log(reportChecklist.checks.capiv2.type.data);
+			processTools.valid(reportChecklist);
 		} else {
 			logger.info('--> Report not Valid, updating report');
-			console.log(reportChecklist.valid);
-			await delay(2000);
+			processTools.invalid(reportChecklist);
 		}
 
 		return {

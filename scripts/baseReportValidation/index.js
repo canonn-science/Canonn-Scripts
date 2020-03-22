@@ -2,7 +2,6 @@ const cron = require('node-cron');
 const logger = require('perfect-logger');
 const loginit = require('../../modules/logger/scriptModule_loginit');
 const capi = require('../../modules/capi/scriptModule_capi');
-const utils = require('../../modules/utils/scriptModule_utils');
 const validateTools = require('../../modules/validate/scriptModule_validation');
 const settings = require('../../settings.json');
 const delay = ms => new Promise(res => setTimeout(res, ms));
@@ -94,6 +93,7 @@ const resetReports = async count => {
 				} else {
 					logger.info('<-- Report reset');
 				}
+				await delay(settings.global.delay);
 			}
 		} else {
 			logger.info(`There are no ${reportKeys[r].toUpperCase()} reports marked as \"issue\"`);
@@ -151,7 +151,7 @@ const validate = async () => {
 						bodyCache.push(reportChecked.addToCache);
 					}
 
-					//console.log(reportChecked.checklist.checks);
+					await delay(settings.global.delay);
 				}
 			} else {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);
