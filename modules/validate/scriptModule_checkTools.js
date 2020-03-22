@@ -2,9 +2,6 @@ const edsm = require('../../modules/edsm/scriptModule_edsm');
 const capi = require('../../modules/capi/scriptModule_capi');
 const utils = require('../utils/scriptModule_utils');
 const settings = require('../../settings.json');
-const delay = ms => new Promise(res => setTimeout(res, ms));
-
-let reportStatus = capi.reportStatus();
 
 module.exports = {
 	/**
@@ -337,20 +334,23 @@ module.exports = {
 				data: {},
 			};
 		} else {
+			let stop = false;
 			for (i = 0; i < checkType.length; i++) {
-				if (data.type.toLowerCase() === checkType[i].type.toLowerCase()) {
+				if (data.type.toLowerCase() === checkType[i].type.toLowerCase() && stop === false) {
+					stop = true;
 					checklist.checks.capiv2.type = {
 						checked: true,
 						exists: true,
 						data: checkType[i],
 					};
-				} else if (data.type.toLowerCase() === checkType[i].journalName.toLowerCase()) {
+				} else if (data.type.toLowerCase() === checkType[i].journalName.toLowerCase() && stop === false) {
+					stop = true;
 					checklist.checks.capiv2.type = {
 						checked: true,
 						exists: true,
 						data: checkType[i],
 					};
-				} else {
+				} else if (stop === false) {
 					checklist.checks.capiv2.type = {
 						checked: true,
 						exists: false,
@@ -365,5 +365,36 @@ module.exports = {
 
 	cmdr: async checklist => {
 		let data = checklist.report.data;
+
+		let cmdrCheck = await capi.getCMDR(data.cmdrName);
+
+		if (!Array.isArray(cmdrCheck) || !cmdrCheck.length) {
+			checklist.checks.capiv2.cmdr = {
+				add: true,
+				checked: true,
+				exists: false,
+				data: {},
+			};
+		} else {
+			for (i = 0; i < cmdrCheck.length; i++) {
+				if (data.cmdrName.toLowerCase() === cmdrCheck[i].cmdrName.toLowerCase()) {
+					checklist.checks.capiv2.cmdr = {
+						add: false,
+						checked: true,
+						exists: true,
+						data: cmdrCheck[i],
+					};
+				} else {
+					checklist.checks.capiv2.cmdr = {
+						add: true,
+						checked: true,
+						exists: false,
+						data: {},
+					};
+				}
+			}
+		}
+
+		return checklist;
 	},
 };

@@ -432,15 +432,58 @@ module.exports = {
 
 		// Validate
 		if (reportChecklist.stopValidation === false) {
-			// Confirm Everything
+			if (
+				reportChecklist.report.data.isBeta === false &&
+				reportChecklist.checks.blacklists.cmdr.checked === true &&
+				reportChecklist.checks.blacklists.cmdr.blacklisted === false &&
+				reportChecklist.checks.blacklists.client.checked === true &&
+				reportChecklist.checks.blacklists.client.blacklisted === false &&
+				reportChecklist.checks.capiv2.system.checked === true &&
+				reportChecklist.checks.capiv2.body.checked === true &&
+				reportChecklist.checks.capiv2.type.checked === true &&
+				reportChecklist.checks.capiv2.type.exists === true &&
+				reportChecklist.checks.capiv2.cmdr.checked === true &&
+				reportChecklist.checks.capiv2.duplicate.isDuplicate === false &&
+				reportChecklist.checks.capiv2.duplicate.createSite === true &&
+				(reportChecklist.checks.capiv2.system.exists === true ||
+					(reportChecklist.checks.edsm.system.exists === true &&
+						reportChecklist.checks.edsm.system.hasCoords === true)) &&
+				(reportChecklist.checks.capiv2.body.exists === true || reportChecklist.checks.edsm.body.exists === true)
+			) {
+				reportChecklist.valid = reportStatus.accepted;
+			} else if (
+				reportChecklist.report.data.isBeta === false &&
+				reportChecklist.checks.blacklists.cmdr.checked === true &&
+				reportChecklist.checks.blacklists.cmdr.blacklisted === false &&
+				reportChecklist.checks.blacklists.client.checked === true &&
+				reportChecklist.checks.blacklists.client.blacklisted === false &&
+				reportChecklist.checks.capiv2.system.checked === true &&
+				reportChecklist.checks.capiv2.body.checked === true &&
+				reportChecklist.checks.capiv2.type.checked === true &&
+				reportChecklist.checks.capiv2.type.exists === true &&
+				reportChecklist.checks.capiv2.cmdr.checked === true &&
+				reportChecklist.checks.capiv2.duplicate.updateSite === true &&
+				reportChecklist.checks.capiv2.duplicate.isDuplicate === true &&
+				(reportChecklist.checks.capiv2.system.exists === true ||
+					(reportChecklist.checks.edsm.system.exists === true &&
+						reportChecklist.checks.edsm.system.hasCoords === true)) &&
+				(reportChecklist.checks.capiv2.body.exists === true || reportChecklist.checks.edsm.body.exists === true)
+			) {
+				reportChecklist.valid = reportStatus.updated;
+			}
+		} else if (!reportChecklist.valid.reason) {
+			reportChecklist.valid = reportStatus.network;
 		}
 
 		// Process
 		if (reportChecklist.valid.isValid === true) {
 			logger.info('--> Report is valid, processing...');
+			console.log(reportChecklist.valid);
+			console.log(reportChecklist.report.data.type);
+			console.log(reportChecklist.checks.capiv2.type.data);
 		} else {
 			logger.info('--> Report not Valid, updating report');
-			//console.log(reportChecklist.checks);
+			console.log(reportChecklist.valid);
 			await delay(2000);
 		}
 

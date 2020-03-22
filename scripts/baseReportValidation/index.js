@@ -151,9 +151,7 @@ const validate = async () => {
 						bodyCache.push(reportChecked.addToCache);
 					}
 
-					if (reportChecked.checklist.valid.reason !== reportStatus.network.reason) {
-						console.log(reportChecked.checklist);
-					}
+					//console.log(reportChecked.checklist.checks);
 				}
 			} else {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);

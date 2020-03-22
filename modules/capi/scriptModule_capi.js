@@ -2,7 +2,6 @@ const logger = require('perfect-logger');
 const moment = require('moment');
 const fetchTools = require('../scriptModule_fetchRetry');
 const settings = require('../../settings.json');
-const delay = ms => new Promise(res => setTimeout(res, ms));
 
 let capiURL;
 
@@ -113,7 +112,12 @@ module.exports = {
 		return await blacklistData;
 	},
 
-	// Fetch CMDR from CAPIv2
+	/**
+	 * Fetch a single CMDR
+	 *
+	 * @return {Array}
+	 */
+
 	getCMDR: async (cmdr, cmdrID, url = capiURL) => {
 		var cmdrURL;
 		if (cmdrID && (!cmdr || cmdr === null || typeof cmdr === 'undefined')) {
@@ -122,15 +126,20 @@ module.exports = {
 			cmdrURL = url + '/cmdrs?cmdrName=' + encodeURIComponent(cmdr);
 		}
 
-		let response = await fetchTools.fetch_retry(5, cmdrURL, {
-			method: 'GET',
-			headers: {
-				Accept: 'application/json',
-				'Content-Type': 'application/json',
-			},
-		});
+		let cmdrData = [];
+		try {
+			cmdrData = await fetchTools.fetchRetry(cmdrURL, settings.global.retryCount, settings.global.delay, {
+				method: 'GET',
+				headers: {
+					Accept: 'application/json',
+					'Content-Type': 'application/json',
+				},
+			});
+		} catch (error) {
+			logger.warn('CMDR request failed');
+		}
 
-		return await response;
+		return await cmdrData;
 	},
 
 	// Create a CMDR who doesn't exist
