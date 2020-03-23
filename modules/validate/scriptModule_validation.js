@@ -514,7 +514,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	orbitalReport: async () => { },
+	orbitalReport: async () => {},
 
 	/**
 	 * Validate "Thargoid" reports
@@ -522,7 +522,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	thargoidReport: async () => { },
+	thargoidReport: async () => {},
 
 	/**
 	 * Validate "Guardian" reports
@@ -530,5 +530,5 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	guardianReport: async () => { },
+	guardianReport: async () => {},
 };

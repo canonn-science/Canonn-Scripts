@@ -573,9 +573,9 @@ module.exports = {
 	},
 
 	// Update site if new data exists in a report
-	updateSite: async (reportType, siteID, siteData, jwt, url = capiURL) => {
-		let siteURL = url + `/${reportType}sites/${siteID}`;
-		let response = await fetchTools.fetch_retry(5, siteURL, {
+	updateSite: async (siteType, siteID, siteData, jwt, url = capiURL) => {
+		let siteURL = url + `/${siteType}sites/${siteID}`;
+		let response = await fetchTools.fetchRetry(siteURL, settings.global.retryCount, settings.global.delay, {
 			method: 'PUT',
 			headers: {
 				Accept: 'application/json',
@@ -585,7 +585,7 @@ module.exports = {
 			body: JSON.stringify(siteData),
 		});
 
-		return await response.json();
+		return await response;
 	},
 
 	// Get type to validate against

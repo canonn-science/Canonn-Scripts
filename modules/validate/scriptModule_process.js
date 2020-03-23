@@ -1,7 +1,6 @@
 const logger = require('perfect-logger');
 const capi = require('../../modules/capi/scriptModule_capi');
 const utils = require('../utils/scriptModule_utils');
-const settings = require('../../settings.json');
 
 module.exports = {
 	valid: async (status, reportchecklist, jwt, url) => {
@@ -148,7 +147,7 @@ module.exports = {
 					logger.warn('<-- CMDR creation failed');
 				} else {
 					logger.info('<-- CMDR created with ID: ' + cmdr.id);
-					reportchecklist.checks.capiv2.cmdr.data = cmdr
+					reportchecklist.checks.capiv2.cmdr.data = cmdr;
 					data.discoveredBy = reportchecklist.checks.capiv2.cmdr.data.id;
 				}
 			}
@@ -165,36 +164,63 @@ module.exports = {
 							data.discoveredBy = reportchecklist.checks.capiv2.cmdr.data.id;
 						}
 					} else {
-						logger.warn('<-- Body name doesn\'t match')
-						logger.warn('--> Updating report')
+						logger.warn("<-- Body name doesn't match");
+						logger.warn('--> Updating report');
 					}
 				} else {
-					logger.warn('<-- System name doesn\'t match')
-					logger.warn('--> Updating report')
+					logger.warn("<-- System name doesn't match");
+					logger.warn('--> Updating report');
 				}
 			}
 
 			// If nothing to be updated, do nothing
 			if (error === false) {
 				if (Object.keys(data).length < 1) {
-					logger.warn('<-- Nothing to update, setting to duplicate')
+					logger.warn('--> Nothing to update, setting to duplicate');
+					let duplicateReport = await module.exports.invalid('duplicate', reportchecklist, jwt, url);
+					logger.warn(
+						`<-- Updated ${reportchecklist.report.site.toUpperCase()} Report ID: ${
+							duplicateReport.id
+						} as duplicate`
+					);
 					error === true;
 				} else {
-					logger.info('--> Updating site')
-					let site = await capi.updateSite(reportchecklist.report.site, data, jwt, url);
-					logger.info(`<-- Created ${reportchecklist.report.site.toUpperCase()} Site ID: ${site.id}`);
-				}
-			}
+					logger.info('--> Updating site');
+					let site = await capi.updateSite(
+						reportchecklist.report.site,
+						reportchecklist.checks.capiv2.duplicate.site.id,
+						data,
+						jwt,
+						url
+					);
+					logger.info(`<-- Updated ${reportchecklist.report.site.toUpperCase()} Site ID: ${site.id}`);
 
-			// Update Report
-			if (error === false) {
-				// update report
+					// Update report
+					logger.info('--> Updating Report');
+					let updatedReport = await capi.updateReport(
+						reportchecklist.report.site,
+						reportchecklist.report.data.id,
+						{
+							reportComment: reportchecklist.valid.reason,
+							reportStatus: reportchecklist.valid.reportStatus,
+							site: site.id,
+						},
+						jwt,
+						url
+					);
+					logger.info(`<-- Updated Report ID: ${updatedReport.id}`);
+					return {
+						site: site,
+						report: updatedReport,
+					};
+				}
 			}
 		}
 	},
 
-	invalid: async reportchecklist => {
-		console.log('Doing stuff invalid report stuff');
-		console.log(reportchecklist.valid)
+	invalid: async (status, reportchecklist, jwt, url) => {
+		if (status === 'duplicate') {
+		} else if (status === 'invalid') {
+		}
 	},
 };
