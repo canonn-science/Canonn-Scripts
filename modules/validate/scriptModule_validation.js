@@ -276,7 +276,6 @@ module.exports = {
 					}
 				} else {
 					logger.warn('<-- Validation failed: Unknown Error on Body Check');
-					console.log(reportChecklist.checks);
 					reportChecklist.valid = reportStatus.network;
 					reportChecklist.stopValidation = true;
 				}
@@ -470,6 +469,11 @@ module.exports = {
 				(reportChecklist.checks.capiv2.body.exists === true || reportChecklist.checks.edsm.body.exists === true)
 			) {
 				reportChecklist.valid = reportStatus.updated;
+			} else if (
+				reportChecklist.checks.capiv2.duplicate.updateSite === false &&
+				reportChecklist.checks.capiv2.duplicate.isDuplicate === true
+			) {
+				reportChecklist.valid = reportStatus.duplicate;
 			}
 		} else if (!reportChecklist.valid.reason) {
 			reportChecklist.valid = reportStatus.network;
@@ -478,18 +482,22 @@ module.exports = {
 		// Process
 		let data = {};
 		if (reportChecklist.valid.isValid === true) {
-			if (reportChecklist.checks.capiv2.duplicate.isDuplicate === true) {
-				logger.info('<-- Report is Duplicate');
-				let newDuplicate = await processTools.valid('duplicate', reportChecklist, jwt, capiURL);
+			if (reportChecklist.checks.capiv2.duplicate.updateSite === true) {
+				logger.info('<-- Report is an update');
+				let newDuplicate = await processTools.valid('update', reportChecklist, jwt, capiURL);
 				data = newDuplicate;
 			} else {
 				logger.info('<-- Report is valid');
 				let newValid = await processTools.valid('new', reportChecklist, jwt, capiURL);
 				data = newValid;
 			}
-		} else {
-			logger.info('<-- Report is Duplicate');
+		} else if (reportChecklist.valid.reportStatus === 'duplicate') {
+			logger.info('<-- Report is a duplicate');
 			let newInvalid = await processTools.invalid('duplicate', reportChecklist, jwt, capiURL);
+			data = newInvalid;
+		} else {
+			logger.info('<-- Report is invalid');
+			let newInvalid = await processTools.invalid('invalid', reportChecklist, jwt, capiURL);
 			data = newInvalid;
 		}
 
@@ -506,7 +514,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	orbitalReport: async () => {},
+	orbitalReport: async () => { },
 
 	/**
 	 * Validate "Thargoid" reports
@@ -514,7 +522,7 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	thargoidReport: async () => {},
+	thargoidReport: async () => { },
 
 	/**
 	 * Validate "Guardian" reports
@@ -522,5 +530,5 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	guardianReport: async () => {},
+	guardianReport: async () => { },
 };

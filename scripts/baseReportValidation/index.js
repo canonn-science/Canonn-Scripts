@@ -36,12 +36,12 @@ if (params.includes('--novalidate'.toLowerCase()) === true) {
 
 // Ask CAPI for reports
 const fetchReports = async (type, status, start, limit = settings.global.capiLimit) => {
-	// Grab systems
 	logger.info(`Fetching ${status} ${type.toUpperCase()} reports from Canonn API`);
 	let keepGoing = true;
 
 	let reports = [];
 
+	// Get reports via a loop based on response length
 	while (keepGoing === true) {
 		let response = await capi.getReports(type, status, start);
 
@@ -61,14 +61,20 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 	return reports;
 };
 
+// Reset reports from "issue" to "pending"
 const resetReports = async count => {
 	logger.warn('Performing issue report reset');
 	logger.info('----------------');
 	for (r = 0; r < reportKeys.length; r++) {
 		logger.warn(`Resetting ${reportKeys[r].toUpperCase()} reports to \"pending\"`);
+
+		// Loop through accepted types and reset all of them
 		if (count.data[reportKeys[r]].reports.issue > 0) {
+
+			// Fetch list of issue reports
 			let resetList = await fetchReports(reportKeys[r], 'issue', 0);
 
+			// Loop through list and fire report updates
 			for (z = 0; z < resetList.length; z++) {
 				logger.info(
 					`Resetting ${reportKeys[r].toUpperCase()} report ID: ${resetList[z].id} [${z + 1}/${
@@ -77,6 +83,7 @@ const resetReports = async count => {
 				);
 				logger.info(`--> Sending updated Report`);
 
+				// Send updated report status to CAPI
 				let reportData = await capi.updateReport(
 					reportKeys[r],
 					resetList[z].id,
@@ -86,6 +93,7 @@ const resetReports = async count => {
 					jwt
 				);
 
+				// Verify report was updated
 				if (reportData.reportStatus !== 'pending') {
 					logger.warn(
 						`<-- ${reportKeys[r].toUpperCase()} report ID: ${resetList[z].id} did not reset successfully`
@@ -93,6 +101,8 @@ const resetReports = async count => {
 				} else {
 					logger.info('<-- Report reset');
 				}
+
+				// Setting larger delay to decrease load on CAPI
 				await delay(settings.global.delay * 15);
 			}
 		} else {
@@ -104,6 +114,7 @@ const resetReports = async count => {
 	logger.info('----------------');
 };
 
+// Validate reports and create/update data as needed
 const validate = async () => {
 	// Login to the Canonn API
 	jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
@@ -111,12 +122,15 @@ const validate = async () => {
 	logger.info('Getting a count of all reports');
 	logger.info('----------------');
 
+	// Get total counts to prevent extra load on CAPI
 	let reportCounts = await capi.getReportCount();
 
+	// If reset flag is set, reset first
 	if (doReset === true) {
 		await resetReports(reportCounts);
 	}
 
+	// If validation flag is set, skip validation
 	if (doValidate === false) {
 		logger.warn('Skipping report validation');
 	} else {
@@ -126,11 +140,17 @@ const validate = async () => {
 		// Initialize EDSM bodyCache to decrease EDSM API calls
 		let bodyCache = [];
 
+		// Loop through acceptable site/report types
 		for (l = 0; l < reportKeys.length; l++) {
+
+			// Check counts and skip if there is none to be done
 			if (reportCounts.data[reportKeys[l]].reports.pending > 0) {
 				logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`);
+
+				// Fetch reports (loop to fetch all)
 				let toValidate = await fetchReports(reportKeys[l], 'pending', 0);
 
+				// Validate each report in the type
 				for (v = 0; v < toValidate.length; v++) {
 					logger.info(
 						`Validating ${reportKeys[l].toUpperCase()} report ID: ${toValidate[v].id} [${v + 1}/${
@@ -138,6 +158,7 @@ const validate = async () => {
 						}]`
 					);
 
+					// Fire report off to be validated and processed
 					let reportChecked = await validateTools.baseReport(reportKeys[l], toValidate[v], jwt, bodyCache);
 
 					// Push any new EDSM body lookups to cache based on if system name exists
@@ -151,8 +172,7 @@ const validate = async () => {
 						bodyCache.push(reportChecked.addToCache);
 					}
 
-					console.log(reportChecked.data);
-
+					// Set delay to prevent load on CAPI
 					await delay(settings.global.delay * 15);
 				}
 			} else {
@@ -162,21 +182,24 @@ const validate = async () => {
 		}
 		logger.stop('Report validation complete');
 		logger.info('----------------');
+
+		// Clean the EDSM body cache between cron runs
 		logger.stop('Clearing EDSM cache');
 		bodyCache = [];
 	}
-
 	logger.stop('----------------');
 	logger.stop('Script Complete!');
 	logger.stop('----------------');
 };
 
+// Run the script now (for development purposes)
 if (params.includes('--now'.toLowerCase()) === true) {
 	isCron = false;
 	logger.start('Forcefully running scripts');
 	validate();
 }
 
+// Run as cron, using node id for scaling and offset (offset not implemented yet)
 if (isCron === true) {
 	logger.start('Starting in cron mode');
 	cron.schedule(settings.scripts[scriptName].cron[process.env.NODEID], () => {

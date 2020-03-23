@@ -128,12 +128,71 @@ module.exports = {
 					report: {},
 				};
 			}
-		} else if (status === 'duplicate') {
-			// Do Duplicate stuff
+		} else if (status === 'update') {
+			let data = {};
+
+			// Make grabbing report/site data easier
+			let reportData = reportchecklist.report.data;
+			let siteData = reportchecklist.checks.capiv2.duplicate.site;
+
+			// Create CMDR if needed
+			if (reportchecklist.checks.capiv2.cmdr.add === true) {
+				logger.info('--> Creating new CMDR');
+				let newcmdrData = {
+					cmdrName: reportchecklist.report.data.cmdrName,
+				};
+
+				let cmdr = await capi.createCMDR(newcmdrData, jwt, url);
+				if (!cmdr.id) {
+					error = true;
+					logger.warn('<-- CMDR creation failed');
+				} else {
+					logger.info('<-- CMDR created with ID: ' + cmdr.id);
+					reportchecklist.checks.capiv2.cmdr.data = cmdr
+					data.discoveredBy = reportchecklist.checks.capiv2.cmdr.data.id;
+				}
+			}
+
+			// Check if anything needs to be updated
+			if (error === false) {
+				if (reportData.systemName.toUpperCase() === siteData.system.systemName.toUpperCase()) {
+					if (reportData.bodyName.toUpperCase() === siteData.body.bodyName.toUpperCase()) {
+						if (!siteData.frontierID) {
+							data.frontierID = reportData.frontierID;
+						}
+
+						if (!siteData.discoveredBy || siteData.discoveredBy.id === 618) {
+							data.discoveredBy = reportchecklist.checks.capiv2.cmdr.data.id;
+						}
+					} else {
+						logger.warn('<-- Body name doesn\'t match')
+						logger.warn('--> Updating report')
+					}
+				} else {
+					logger.warn('<-- System name doesn\'t match')
+					logger.warn('--> Updating report')
+				}
+			}
+
+			// If nothing to be updated, do nothing
+			if (error === false) {
+				if (Object.keys(data).length < 1) {
+					logger.warn('<-- Nothing to update, setting to duplicate')
+					error === true;
+				} else {
+					logger.info('--> Updating site')
+					let site = await capi.updateSite(reportchecklist.report.site, data, jwt, url);
+					logger.info(`<-- Created ${reportchecklist.report.site.toUpperCase()} Site ID: ${site.id}`);
+				}
+			}
+
+			// Update Report
+			if (error === false)
 		}
 	},
 
 	invalid: async reportchecklist => {
 		console.log('Doing stuff invalid report stuff');
+		console.log(reportchecklist.valid)
 	},
 };
