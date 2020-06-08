@@ -91,8 +91,8 @@ module.exports = {
 			let checkEDSM = await edsm.getSystemEDSM(data.systemName);
 
 			if (
-				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
 				checkEDSM.id &&
+				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
 				checkEDSM.coords.x &&
 				checkEDSM.coords.y &&
 				checkEDSM.coords.z
@@ -104,7 +104,7 @@ module.exports = {
 					data: checkEDSM,
 				};
 				return checklist;
-			} else if (!checkEDSM || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
+			} else if (!checkEDSM || !checkEDSM.id || checkEDSM == {} || checkEDSM == [] || checkEDSM == undefined) {
 				checklist.checks.edsm.system = {
 					checked: true,
 					exists: false,
@@ -113,8 +113,8 @@ module.exports = {
 				};
 				return checklist;
 			} else if (
-				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
-				(!checkEDSM.coords || !checkEDSM.coords.x || !checkEDSM.coords.y || !checkEDSM.coords.z)
+				(!checkEDSM.coords || !checkEDSM.coords.x || !checkEDSM.coords.y || !checkEDSM.coords.z) &&
+				checkEDSM.name.toLowerCase() === data.systemName.toLowerCase()
 			) {
 				checklist.checks.edsm.system = {
 					checked: true,
