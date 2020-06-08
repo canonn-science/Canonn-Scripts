@@ -17,7 +17,6 @@ let jwt;
 // Load params
 let params = process.argv;
 let reportKeys = settings.scripts[scriptName].acceptedTypes;
-let reportStatus = capi.reportStatus();
 
 // Start the logger
 loginit(scriptName);
@@ -179,6 +178,8 @@ const validate = async () => {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);
 			}
 			logger.info('----------------');
+			// Set delay to prevent corrupt logging
+			await delay(500)
 		}
 		logger.stop('Report validation complete');
 		logger.info('----------------');
