@@ -93,6 +93,13 @@ const update = async () => {
 	const goodBody = async (bodyID, bodyData, systemID) => {
 		logger.info('<-- Body Found, updating CAPI with new data');
 		let newData = await utils.processBody('edsm', bodyData, systemID);
+
+		if (!newData.missingSkipCount && 
+			(!bodyData.missingSkipCount || bodyData.missingSkipCount < 0)
+		) {
+			newData.missingSkipCount = 0
+		}
+
 		await capi.updateBody(bodyID, newData, jwt);
 	};
 
