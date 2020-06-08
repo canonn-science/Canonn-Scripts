@@ -1,7 +1,7 @@
 {
   "name": "canonn-scripts",
   "private": false,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Collection of simple cron based scripts that Canonn uses for various things",
   "repository": "https://github.com/canonn-science/Canonn-Scripts.git",
   "main": "index.js",
@@ -14,9 +14,11 @@
     "find-config": "^1.0.0",
     "fs": "^0.0.1-security",
     "hookcord": "^2.0.2",
+    "moment": "^2.24.0",
     "node-cron": "^2.0.3",
     "node-fetch": "^2.6.0",
-    "path": "^0.12.7"
+    "path": "^0.12.7",
+    "perfect-logger": "^1.6.1"
   },
   "author": {
     "name": "Canonn R&D",

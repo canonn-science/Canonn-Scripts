@@ -11,7 +11,7 @@ const latestPath = path.join(__dirname, 'data', 'latest.json');
 const examplePath = path.join(__dirname, 'data', 'example.json');
 let latestVersion = {};
 
-const downloadJournal = async version => {
+const currentVersion = async () => {
 	// Get current version or create the latest.json file
 	try {
 		if (fs.existsSync(latestPath)) {
@@ -25,6 +25,13 @@ const downloadJournal = async version => {
 	} catch (err) {
 		console.log(err);
 	}
+}
+
+const fireWebhook = async (link, userIDs, version) => {
+
+}
+
+const downloadJournal = async version => {
 
 	// Construct paths (will override fdev naming for older files)
 	let journalPath = path.join(__dirname, 'data', `Journal-Manual-v${version}.pdf`);

@@ -71,6 +71,11 @@ isomorphic-fetch@^2.2.1:
     node-fetch "^1.0.1"
     whatwg-fetch ">=0.10.0"
 
+moment@^2.24.0:
+  version "2.24.0"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.24.0.tgz#0d055d53f5052aa653c9f6eb68bb5d12bf5c2b5b"
+  integrity sha512-bV7f+6l2QigeBBZSM/6yTNq4P2fNpSWj/0e7jQcy87A8e7o2nAfP/34/2ky5Vw4B9S446EtIhodAzkFCcR4dQg==
+
 node-cron@^2.0.3:
   version "2.0.3"
   resolved "https://registry.yarnpkg.com/node-cron/-/node-cron-2.0.3.tgz#b9649784d0d6c00758410eef22fa54a10e3f602d"
@@ -109,6 +114,11 @@ path@^0.12.7:
   dependencies:
     process "^0.11.1"
     util "^0.10.3"
+
+perfect-logger@^1.6.1:
+  version "1.6.1"
+  resolved "https://registry.yarnpkg.com/perfect-logger/-/perfect-logger-1.6.1.tgz#f54ebb18e383db3eba8ec98af15797540c534027"
+  integrity sha512-ab7Ql82LKXoFKBNIdZHheqLpuKgp0V0NsYsGq7OLj13JMmqfsVs1Yv9ZkU24psbLpdN3ZCqg3WzWTFltMPoOOA==
 
 process@^0.11.1:
   version "0.11.10"
