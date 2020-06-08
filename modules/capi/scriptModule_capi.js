@@ -403,6 +403,10 @@ module.exports = {
 		if (bodyData.bodyName === null || typeof bodyData.bodyName === 'undefined') {
 			return {};
 		} else {
+			if (bodyData.missingSkipCount === null || typeof bodyData.missingSkipCount === 'undefined'){
+				bodyData.missingSkipCount = 0
+			}
+
 			let response = await fetchTools.fetchRetry(bodyURL, settings.global.retryCount, settings.global.delay, {
 				method: 'POST',
 				headers: {
