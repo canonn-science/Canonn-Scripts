@@ -11,9 +11,7 @@ if (process.env.NODE_ENV) {
 	capiURL = settings.global.url.local;
 }
 
-let dateNow = moment()
-	.utc()
-	.format('YYYY-MM-DD hh:mm:ss');
+let dateNow = moment().utc().format('YYYY-MM-DD hh:mm:ss');
 
 // Used to fetch the highest siteID to create a new site
 let getSiteID = async (siteType, url = capiURL) => {
@@ -403,8 +401,8 @@ module.exports = {
 		if (bodyData.bodyName === null || typeof bodyData.bodyName === 'undefined') {
 			return {};
 		} else {
-			if (bodyData.missingSkipCount === null || typeof bodyData.missingSkipCount === 'undefined'){
-				bodyData.missingSkipCount = 0
+			if (bodyData.missingSkipCount === null || typeof bodyData.missingSkipCount === 'undefined') {
+				bodyData.missingSkipCount = 0;
 			}
 
 			let response = await fetchTools.fetchRetry(bodyURL, settings.global.retryCount, settings.global.delay, {
@@ -631,6 +629,72 @@ module.exports = {
 				return types;
 			}
 		}
+	},
+
+	/**
+	 * Fetch an array of all Material Reports matching the filter
+	 *
+	 * @return {Array}
+	 */
+
+	getMaterialReports: async (lengthFilter, start, url = capiURL, limit = settings.global.capiLimit) => {
+		let mrData = [];
+		let keepDate = moment().subtract(lengthFilter, 'months').utc().format();
+
+		let mrURL = url + '/materialreports' + '?created_at_lte=' + keepDate + '&_limit=' + limit + '&_start=' + start;
+
+		mrData = await fetchTools.fetchRetry(mrURL, settings.global.retryCount, settings.global.delay, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return mrData;
+	},
+
+	/**
+	 * Get a count of material reports based on a filter
+	 *
+	 * @return {Object}
+	 */
+
+	countMaterialReport: async (lengthFilter, url = capiURL) => {
+		let keepDate = moment().subtract(lengthFilter, 'months').utc().format();
+
+		let mrURL = url + '/materialreports/count' + '?created_at_lte=' + keepDate;
+
+		mrCount = await fetchTools.fetchRetry(mrURL, settings.global.retryCount, settings.global.delay, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return parseInt(mrCount);
+	},
+
+	/**
+	 * Delete a material report
+	 *
+	 * @return {Object}
+	 */
+
+	deleteMaterialReport: async (mrID, jwt, url = capiURL, limit = settings.global.capiLimit) => {
+		let mrURL = url + '/materialreports/' + mrID;
+
+		mrData = await fetchTools.fetchRetry(mrURL, settings.global.retryCount, settings.global.delay, {
+			method: 'DELETE',
+			headers: {
+				Authorization: `Bearer ${jwt}`,
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return mrData;
 	},
 
 	/**
