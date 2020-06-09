@@ -17,7 +17,6 @@ let jwt;
 // Load params
 let params = process.argv;
 let reportKeys = settings.scripts[scriptName].acceptedTypes;
-let reportStatus = capi.reportStatus();
 
 // Start the logger
 loginit(scriptName);
@@ -179,6 +178,8 @@ const validate = async () => {
 				logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);
 			}
 			logger.info('----------------');
+			// Set delay to prevent corrupt logging
+			await delay(500)
 		}
 		logger.stop('Report validation complete');
 		logger.info('----------------');
@@ -202,7 +203,13 @@ if (params.includes('--now'.toLowerCase()) === true) {
 // Run as cron, using node id for scaling and offset (offset not implemented yet)
 if (isCron === true) {
 	logger.start('Starting in cron mode');
-	cron.schedule(settings.scripts[scriptName].cron[process.env.NODEID], () => {
+	let nodeID = 0
+
+	if (process.env.NODEID) {
+		nodeID = process.env.NODEID
+	}
+
+	cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
 		validate();
 	});
 }

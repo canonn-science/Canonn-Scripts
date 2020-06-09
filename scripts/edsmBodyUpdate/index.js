@@ -93,6 +93,13 @@ const update = async () => {
 	const goodBody = async (bodyID, bodyData, systemID) => {
 		logger.info('<-- Body Found, updating CAPI with new data');
 		let newData = await utils.processBody('edsm', bodyData, systemID);
+
+		if (!newData.missingSkipCount && 
+			(!bodyData.missingSkipCount || bodyData.missingSkipCount < 0)
+		) {
+			newData.missingSkipCount = 0
+		}
+
 		await capi.updateBody(bodyID, newData, jwt);
 	};
 
@@ -158,7 +165,13 @@ if (params.includes('--now'.toLowerCase()) === true) {
 
 if (isCron === true) {
 	logger.start('Starting in cron mode');
-	cron.schedule(settings.scripts[scriptName].cron[process.env.NODEID], () => {
+	let nodeID = 0
+
+	if (process.env.NODEID) {
+		nodeID = process.env.NODEID
+	}
+
+	cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
 		update();
 	});
 }

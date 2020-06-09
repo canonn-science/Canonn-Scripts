@@ -1,7 +1,6 @@
 var fetch = require('fetch-retry');
 let logger = require('perfect-logger');
 let settings = require('../settings.json');
-const delay = ms => new Promise(res => setTimeout(res, ms));
 
 module.exports = {
 	fetchRetry: async (url, retryCount = settings.global.retryCount, delay = settings.global.delay * 100, options) => {

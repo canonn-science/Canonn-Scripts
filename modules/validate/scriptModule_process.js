@@ -25,6 +25,11 @@ module.exports = {
 					logger.info('--> Creating new System');
 					let newsysData = await utils.processSystem('edsm', reportchecklist.checks.edsm.system.data);
 
+					// Assign region if it exists
+					if(reportchecklist.report.data.regionID) {
+						newsysData.region = reportchecklist.report.data.regionID
+					}
+
 					let system = await capi.createSystem(newsysData, jwt, url);
 					if (!system.id) {
 						error = true;
@@ -34,7 +39,31 @@ module.exports = {
 						data.system = system.id;
 					}
 				} else if (
-					reportchecklist.checks.capiv2.system.exists === true ||
+					reportchecklist.checks.capiv2.system.exists === true &&
+					reportchecklist.checks.capiv2.system.data.id &&
+					reportchecklist.report.data.regionID &&
+					(
+						reportchecklist.checks.capiv2.system.data.region === null ||
+						typeof reportchecklist.checks.capiv2.system.data.region === 'undefined'
+					)
+				) {
+					logger.info('--> Updating system with region ID');
+					let system = await capi.updateSystem(
+						reportchecklist.checks.capiv2.system.data.id,
+						{
+							region: reportchecklist.report.data.regionID
+						},
+						jwt,
+						url
+					);
+						if(system.id) {
+							logger.info('<-- System updated with region');
+							data.system = system.id
+						} else {
+							logger.warn('<-- System region update failed');
+						}
+				} else if (
+					reportchecklist.checks.capiv2.system.exists === true &&
 					reportchecklist.checks.capiv2.system.data.id
 				) {
 					data.system = reportchecklist.checks.capiv2.system.data.id;
@@ -109,6 +138,7 @@ module.exports = {
 						{
 							reportComment: reportchecklist.valid.reason,
 							reportStatus: reportchecklist.valid.reportStatus,
+							added: true,
 							site: site.id,
 						},
 						jwt,
