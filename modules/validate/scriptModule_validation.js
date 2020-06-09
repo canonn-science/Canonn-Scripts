@@ -1002,8 +1002,6 @@ module.exports = {
 				data = newDuplicate;
 			} else {
 				logger.info('<-- Report is valid');
-				console.log(reportChecklist.valid)
-				console.log(reportChecklist.checks.capiv2)
 				let newValid = await processTools.valid('new', reportChecklist, jwt, capiURL);
 				data = newValid;
 			}
