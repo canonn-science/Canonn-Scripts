@@ -233,6 +233,7 @@ module.exports = {
 						{
 							reportComment: reportchecklist.valid.reason,
 							reportStatus: reportchecklist.valid.reportStatus,
+							added: false,
 							site: site.id,
 						},
 						jwt,
