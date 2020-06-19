@@ -682,8 +682,8 @@ module.exports = {
 	 * @return {Object}
 	 */
 
-	deleteMaterialReport: async (mrID, jwt, url = capiURL, limit = settings.global.capiLimit) => {
-		let mrURL = url + '/materialreports/' + mrID;
+	deleteMaterialReports: async (month, jwt, url = capiURL) => {
+		let mrURL = url + '/materialreports/oldbulk?month=' + month;
 
 		mrData = await fetchTools.fetchRetry(mrURL, settings.global.retryCount, settings.global.delay, {
 			method: 'DELETE',
