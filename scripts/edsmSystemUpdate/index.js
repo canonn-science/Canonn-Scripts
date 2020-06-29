@@ -5,8 +5,11 @@ const edsm = require('../../modules/edsm/scriptModule_edsm');
 const capi = require('../../modules/capi/scriptModule_capi');
 const utils = require('../../modules/utils/scriptModule_utils');
 const settings = require('../../settings.json');
+const params = require('minimist')(process.argv.slice(2));
 const delay = ms => new Promise(res => setTimeout(res, ms));
 require('dotenv').config({ path: require('find-config')('.env') });
+
+console.log(params);
 
 // Init some base Script values
 let scriptName = 'edsmSystemUpdate';
@@ -14,16 +17,13 @@ let isForced = false;
 let isCron = true;
 let jwt;
 
-// Load params
-let params = process.argv;
-
 // Start the logger
 loginit(scriptName);
 
 // Switch between forced updates
-if (params.includes('--force'.toLowerCase()) === true) {
+if (params.force === true) {
 	isForced = true;
-	logger.warn('Forcfully updating all systems');
+	logger.warn('Forcefully updating all systems');
 }
 
 // Ask CAPI for systems
@@ -57,14 +57,25 @@ const fetchSystems = async (start, limit = settings.global.capiLimit) => {
 };
 
 const update = async () => {
-	let systems = await fetchSystems(0);
+	let start = 0;
+
+	if (params.start) {
+		try {
+			logger.info('Using custom start: ' + params.start);
+			start = parseInt(params.start);
+		} catch(e) {
+			logger.warn('Start parameter is not an integer, defaulting to zero');
+		}
+	}
+
+	let systems = await fetchSystems(start);
 
 	for (i = 0; i < systems.length; i++) {
 		logger.info(`Updating on information on System ID: ${systems[i].id} [${i + 1}/${systems.length}]`);
 		logger.info('--> Asking EDSM for system data');
 		let response = await edsm.getSystemEDSM(systems[i].systemName);
 
-		if (!response || response == [] || response == {}) {
+		if (!response || Array.isArray(response) === true || response == [] || response == {}) {
 			logger.warn('<-- System not found, updating CAPI with skip count');
 
 			let skipCount = 0;
@@ -104,7 +115,7 @@ const update = async () => {
 	logger.stop('----------------');
 };
 
-if (params.includes('--now'.toLowerCase()) === true) {
+if (params.now === true) {
 	isCron = false;
 	logger.start('Forcefully running scripts');
 	update();
