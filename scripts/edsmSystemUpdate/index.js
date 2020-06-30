@@ -9,8 +9,6 @@ const params = require('minimist')(process.argv.slice(2));
 const delay = ms => new Promise(res => setTimeout(res, ms));
 require('dotenv').config({ path: require('find-config')('.env') });
 
-console.log(params);
-
 // Init some base Script values
 let scriptName = 'edsmSystemUpdate';
 let isForced = false;

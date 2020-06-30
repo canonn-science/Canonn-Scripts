@@ -12,7 +12,7 @@ module.exports = {
 				logger.warn('Request failed, skipping');
 				return false;
 			}
-			if (response.status === 429) {
+			if (response.status && response.status === 429) {
 				logger.warn(
 					`Rate limit Exceeded, retrying in: ${options.retryDelay * 10}ms Attempt number: ${attempt + 1}`
 				);
