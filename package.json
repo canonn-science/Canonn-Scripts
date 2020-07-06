@@ -17,17 +17,20 @@
     "edsmSystem:now": "node scripts/edsmSystemUpdate/index.js --now"
   },
   "dependencies": {
+    "axios": "^0.19.2",
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
     "fs": "^0.0.1-security",
     "hookcord": "^2.0.2",
+    "json-bigint": "^0.3.1",
     "minimist": "^1.2.5",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
     "node-fetch": "^2.6.0",
     "path": "^0.12.7",
-    "perfect-logger": "^1.6.1"
+    "perfect-logger": "^1.6.1",
+    "retry-axios": "^2.2.1"
   },
   "author": {
     "name": "Canonn R&D",
