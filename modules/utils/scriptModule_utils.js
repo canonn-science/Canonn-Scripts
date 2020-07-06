@@ -16,7 +16,7 @@ module.exports = {
 
 		if (source === 'report') {
 			newData.systemName = data.systemName.toUpperCase();
-			newData.id64 = data.systemAddress || null;
+			newData.id64 = String(data.systemAddress) || null;
 			newData.edsmID = null;
 			newData.edsmCoordX = data.coordX || null;
 			newData.edsmCoordY = data.coordY || null;
@@ -25,7 +25,11 @@ module.exports = {
 			newData.primaryStar = {};
 		} else if (source === 'capiv2') {
 			newData.systemName = data.systemName.toUpperCase();
-			newData.id64 = data.id64 || null;
+			if (data.id64 !== null) {
+				newData.id64 = String(data.id64);
+			} else {
+				newData.id64 = null;
+			}
 			newData.edsmID = data.edsmID || null;
 			newData.edsmCoordX = data.edsmCoordX || null;
 			newData.edsmCoordY = data.edsmCoordY || null;
@@ -34,7 +38,11 @@ module.exports = {
 			newData.primaryStar = data.primaryStar || {};
 		} else if (source === 'edsm') {
 			newData.systemName = data.name.toUpperCase();
-			newData.id64 = data.id64 || null;
+			if (data.id64 !== null) {
+				newData.id64 = String(data.id64);
+			} else {
+				newData.id64 = null;
+			}
 			newData.edsmID = data.id;
 			newData.edsmCoordX = data.coords.x;
 			newData.edsmCoordY = data.coords.y;
@@ -56,7 +64,11 @@ module.exports = {
 			newData.bodyName = data.bodyName.toUpperCase();
 		} else if (source === 'capiv2') {
 			newData.bodyName = data.bodyName.toUpperCase();
-			newData.id64 = data.id64 || null;
+			if (data.id64 !== null) {
+				newData.id64 = String(data.id64);
+			} else {
+				newData.id64 = null;
+			}
 			newData.edsmID = data.edsmID || null;
 			newData.bodyID = data.bodyID || null;
 			newData.type = data.type || null;
@@ -92,7 +104,11 @@ module.exports = {
 			newData.material = data.material || {};
 		} else if (source === 'edsm') {
 			newData.bodyName = data.name.toUpperCase();
-			newData.id64 = data.id64 || null;
+			if (data.id64 !== null) {
+				newData.id64 = String(data.id64);
+			} else {
+				newData.id64 = null;
+			}
 			newData.edsmID = data.id || null;
 			newData.bodyID = data.bodyId || null;
 			newData.type = data.type || null;

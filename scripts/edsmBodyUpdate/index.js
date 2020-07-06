@@ -5,6 +5,7 @@ const edsm = require('../../modules/edsm/scriptModule_edsm');
 const capi = require('../../modules/capi/scriptModule_capi');
 const utils = require('../../modules/utils/scriptModule_utils');
 const settings = require('../../settings.json');
+const params = require('minimist')(process.argv.slice(2));
 const delay = ms => new Promise(res => setTimeout(res, ms));
 require('dotenv').config({ path: require('find-config')('.env') });
 
@@ -14,14 +15,11 @@ let isForced = false;
 let isCron = true;
 let jwt;
 
-// Load params
-let params = process.argv;
-
 // Start the logger
 loginit(scriptName);
 
 // Switch between forced updates
-if (params.includes('--force'.toLowerCase()) === true) {
+if (params.force === true) {
 	isForced = true;
 	logger.warn('Forcfully updating all bodies');
 }
@@ -48,7 +46,7 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
 			keepGoing = false;
 			logger.info('Fetched ' + bodies.length + ' bodies from the Canonn API');
 		} else {
-			start = parseInt(start) + limit;
+			start = start + limit;
 			await delay(settings.global.delay);
 		}
 	}
@@ -57,11 +55,15 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
 };
 
 const update = async () => {
-	// Allow custom start
 	let start = 0;
-	if (process.env.START) {
-		start = process.env.START;
-		logger.warn(`Setting custom start: ${start}`);
+
+	if (params.start) {
+		try {
+			logger.info('Using custom start: ' + params.start);
+			start = parseInt(params.start);
+		} catch(e) {
+			logger.warn('Start parameter is not an integer, defaulting to zero');
+		}
 	}
 
 	let bodies = await fetchBodies(start);
@@ -157,7 +159,7 @@ const update = async () => {
 	logger.stop('----------------');
 };
 
-if (params.includes('--now'.toLowerCase()) === true) {
+if (params.now === true) {
 	isCron = false;
 	logger.start('Forcefully running scripts');
 	update();
