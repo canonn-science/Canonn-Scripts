@@ -179,8 +179,11 @@ module.exports = {
 			args: [system.systemName]
 		}
 		PythonShell.run(regionMapScript, options, (err, results) => {
-			console.log(err)
-			console.log(JSON.parse(results[0]))
+			if (err) {
+				console.log(err)
+			} else {
+				console.log(JSON.parse(results[0]))
+			}
 		});
 	},
 };
