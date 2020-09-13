@@ -14,7 +14,9 @@
     "edsmBody": "node scripts/edsmBodyUpdate/index.js",
     "edsmBody:now": "node scripts/edsmBodyUpdate/index.js --now",
     "edsmSystem": "node scripts/edsmSystemUpdate/index.js",
-    "edsmSystem:now": "node scripts/edsmSystemUpdate/index.js --now"
+    "edsmSystem:now": "node scripts/edsmSystemUpdate/index.js --now",
+    "edsmRegion": "node scripts/edsmRegionUpdate/index.js",
+    "edsmRegion:now": "node scripts/edsmRegionUpdate/index.js --now"
   },
   "dependencies": {
     "axios": "^0.19.2",
@@ -30,6 +32,7 @@
     "node-fetch": "^2.6.0",
     "path": "^0.12.7",
     "perfect-logger": "^1.6.1",
+    "python-shell": "^2.0.1",
     "retry-axios": "^2.2.1"
   },
   "author": {

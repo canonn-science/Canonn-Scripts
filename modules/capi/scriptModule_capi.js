@@ -323,6 +323,26 @@ module.exports = {
 	},
 
 	/**
+	 * Fetch all region types
+	 *
+	 * @return {Array}
+	 */
+
+	getRegions: async (url = capiURL) => {
+		const regionsURL = url + `/regions?_limit=42`;
+
+		let response = await fetchTools.fetchRetry(regionsURL, settings.global.retryCount, settings.global.delay, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return await response;
+	},
+
+	/**
 	 * Fetch a single Body
 	 *
 	 * @return {Array}

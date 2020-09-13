@@ -1,4 +1,5 @@
-let capi = require('../capi/scriptModule_capi');
+const capi = require('../capi/scriptModule_capi');
+const {PythonShell} = require('python-shell')
 
 module.exports = {
 	// Processing system data from CAPIv2 or EDSM
@@ -170,5 +171,16 @@ module.exports = {
 		}
 
 		return D_ab;
+	},
+
+	regionMap: async (system) => {
+		const regionMapScript = `./modules/utils/edRegionMap/RegionMap.py`
+		const options = {
+			args: [system.systemName]
+		}
+		PythonShell.run(regionMapScript, options, (err, results) => {
+			console.log(err)
+			console.log(JSON.parse(results[0]))
+		});
 	},
 };
