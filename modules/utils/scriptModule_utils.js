@@ -1,5 +1,6 @@
 const capi = require('../capi/scriptModule_capi');
-const {PythonShell} = require('python-shell')
+const {PythonShell} = require('python-shell');
+const jsonBigint = require('json-bigint');
 
 module.exports = {
 	// Processing system data from CAPIv2 or EDSM
@@ -178,12 +179,23 @@ module.exports = {
 		const options = {
 			args: [system.systemName]
 		}
-		PythonShell.run(regionMapScript, options, (err, results) => {
-			if (err) {
-				console.log(err)
-			} else {
-				console.log(JSON.parse(results[0]))
-			}
+
+		return new Promise((resolve, reject) => {
+			let result;
+			let pyshell = new PythonShell(regionMapScript, options);
+			
+			pyshell.on('message', function (message) {
+				result = JSON.parse(message);
+			});
+			
+			pyshell.on('stderr', function (stderr) {
+				console.log(stderr);
+			});
+			
+			pyshell.end(function (err) {
+				if (err) reject(err);
+				resolve(result);
+			});
 		});
 	},
 };

@@ -1,7 +1,6 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
 const loginit = require('../../modules/logger/scriptModule_loginit');
-const edsm = require('../../modules/edsm/scriptModule_edsm');
 const capi = require('../../modules/capi/scriptModule_capi');
 const utils = require('../../modules/utils/scriptModule_utils');
 const settings = require('../../settings.json');
@@ -24,4 +23,13 @@ if (params.force === true) {
 	logger.warn('Forcefully updating all systems');
 }
 
-utils.regionMap({systemName: 'Varati'});
+const getRegion = async () => {
+	let data = await utils.regionMap({
+		systemName: 'CLOOKUIA MI-K D8-2',
+    edsmCoordX: 2855.125,
+    edsmCoordY: -1157.09375,
+    edsmCoordZ: 12470.5625,
+	});
+	console.log(data)
+}
+getRegion()
