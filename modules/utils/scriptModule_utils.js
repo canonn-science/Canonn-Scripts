@@ -1,6 +1,5 @@
 const capi = require('../capi/scriptModule_capi');
-const {PythonShell} = require('python-shell');
-const jsonBigint = require('json-bigint');
+const regionmapdata = require('./RegionMapData.json');
 
 module.exports = {
 	// Processing system data from CAPIv2 or EDSM
@@ -174,28 +173,44 @@ module.exports = {
 		return D_ab;
 	},
 
-	regionMap: async (system) => {
-		const regionMapScript = `./modules/utils/edRegionMap/RegionMap.py`
-		const options = {
-			args: [system.systemName]
-		}
+	findRegion: async (x, z) => {
+		const regions = regionmapdata.regions;
+		const regionmap = regionmapdata.regionmap;
 
-		return new Promise((resolve, reject) => {
-			let result;
-			let pyshell = new PythonShell(regionMapScript, options);
-			
-			pyshell.on('message', function (message) {
-				result = JSON.parse(message);
-			});
-			
-			pyshell.on('stderr', function (stderr) {
-				console.log(stderr);
-			});
-			
-			pyshell.end(function (err) {
-				if (err) reject(err);
-				resolve(result);
-			});
-		});
-	},
+		const x0 = -49985;
+		const z0 = -24105;
+
+		let px = Math.floor((x - x0) * 83 / 4096);
+		let pz = Math.floor((z - z0) * 83 / 4096);
+
+		if (px < 0 || pz < 0 || pz > regionmap.length) {
+			return null;
+		} else {
+			let row = regionmap[pz];
+			let rx = 0;
+			let pv = 0;
+
+			for (var v of row) {
+				let rl = v[0];
+				if (px < rx + rl) {
+					pv = v[1];
+					break;
+				} else {
+					rx += rl;
+				}
+			}
+
+			if (pv == 0) {
+				return {
+					id: 0,
+					name: null
+				};
+			} else {
+				return {
+					id: pv,
+					name: regions[pv]
+				};
+			}
+		}
+	}
 };

@@ -24,12 +24,10 @@ if (params.force === true) {
 }
 
 const getRegion = async () => {
-	let data = await utils.regionMap({
-		systemName: 'CLOOKUIA MI-K D8-2',
-    edsmCoordX: 2855.125,
-    edsmCoordY: -1157.09375,
-    edsmCoordZ: 12470.5625,
-	});
+	let data = await utils.findRegion(
+    2855.125,
+    12470.5625
+	);
 	console.log(data)
 }
 getRegion()
