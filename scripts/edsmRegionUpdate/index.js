@@ -23,11 +23,99 @@ if (params.force === true) {
 	logger.warn('Forcefully updating all systems');
 }
 
-const getRegion = async () => {
-	let data = await utils.findRegion(
-    2855.125,
-    12470.5625
-	);
-	console.log(data)
+// Ask CAPI for systems
+const fetchSystems = async (start, limit = settings.global.capiLimit) => {
+	// Login to the Canonn API
+	jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+
+	// Grab systems
+	logger.info('Fetching systems from Canonn API');
+	let keepGoing = true;
+
+	let systems = [];
+
+	while (keepGoing === true) {
+		let response = await capi.getSystems(start, false, true);
+
+		for (i = 0; i < response.length; i++) {
+			systems.push(response[i]);
+		}
+
+		if (response.length < limit) {
+			keepGoing = false;
+			logger.info('Fetched ' + systems.length + ' systems from the Canonn API');
+		} else {
+			start = start + limit;
+			await delay(settings.global.delay);
+		}
+	}
+
+	return systems;
+};
+
+const update = async () => {
+	let start = 0;
+
+	if (params.start) {
+		try {
+			logger.info('Using custom start: ' + params.start);
+			start = parseInt(params.start);
+		} catch(e) {
+			logger.warn('Start parameter is not an integer, defaulting to zero');
+		}
+	}
+
+	let systems = await fetchSystems(start);
+
+	for (i = 0; i < systems.length; i++) {
+		logger.info(`Updating on region on System ID: ${systems[i].id} [${i + 1}/${systems.length}]`);
+		logger.info('--> Calculating Region');
+		let regionLookup = await utils.findRegion(systems[i].edsmCoordX, systems[i].edsmCoordZ)
+
+		if (regionLookup.id === 0) {
+			logger.warn('<-- Region not found, updating CAPI with skip count');
+
+			let skipCount = 0;
+			if (typeof systems[i].missingSkipCount !== 'integer') {
+				skipCount = 1;
+			} else {
+				skipCount = skipCount + 1;
+			}
+
+			await capi.updateSystem(
+				systems[i].id,
+				{
+					missingSkipCount: skipCount,
+				},
+				jwt
+			);
+		} else {
+			logger.info('<-- Region Found, updating CAPI with new region ID: ' + regionLookup.id);
+			await capi.updateSystem(systems[i].id, {region: regionLookup.id}, jwt);
+		}
+		await delay(settings.scripts.edsmRegionUpdate.edsmDelay / 8);
+	}
+
+	logger.stop('----------------');
+	logger.stop('Script Complete!');
+	logger.stop('----------------');
+};
+
+if (params.now === true) {
+	isCron = false;
+	logger.start('Forcefully running scripts');
+	update();
 }
-getRegion()
+
+if (isCron === true) {
+	logger.start('Starting in cron mode');
+	let nodeID = 0
+
+	if (process.env.NODEID) {
+		nodeID = process.env.NODEID
+	}
+
+	cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
+		update();
+	});
+}
