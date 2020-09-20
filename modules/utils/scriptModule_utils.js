@@ -251,6 +251,20 @@ module.exports = {
 			systemData.boxel = await findRegionForBoxel(system.id64);
 		}
 
-		return systemData
+		let newSystemData = {
+			name: system.systemName,
+			id64: system.id64
+		}
+
+		if (
+			(systemData.region && systemData.region.id === systemData.boxel.region.id) ||
+			systemData.boxel.region.id === 0
+		) {
+			newSystemData.region = systemData.region
+		} else {
+			newSystemData.region = systemData.boxel.region
+		}
+
+		return newSystemData
 	}
 };
