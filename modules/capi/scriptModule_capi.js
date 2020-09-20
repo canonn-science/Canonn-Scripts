@@ -218,7 +218,7 @@ module.exports = {
 	getSystems: async (start, forced, regionUpdate = false, url = capiURL, limit = settings.global.capiLimit) => {
 		let systemsURL;
 
-		if (regionUpdate === true) {
+		if (forced === false && regionUpdate === true) {
 			systemsURL = url + `/systems?region_null=true&_limit=${limit}&_start=${start}`;
 		} else if (forced === true) {
 			systemsURL = url + `/systems?_limit=${limit}&_start=${start}`;

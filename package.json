@@ -20,6 +20,7 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "cross-fetch": "^3.0.6",
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",

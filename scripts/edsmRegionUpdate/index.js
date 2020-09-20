@@ -35,7 +35,7 @@ const fetchSystems = async (start, limit = settings.global.capiLimit) => {
 	let systems = [];
 
 	while (keepGoing === true) {
-		let response = await capi.getSystems(start, false, true);
+		let response = await capi.getSystems(start, isForced, true);
 
 		for (i = 0; i < response.length; i++) {
 			systems.push(response[i]);
@@ -70,9 +70,9 @@ const update = async () => {
 	for (i = 0; i < systems.length; i++) {
 		logger.info(`Updating on region on System ID: ${systems[i].id} [${i + 1}/${systems.length}]`);
 		logger.info('--> Calculating Region');
-		let regionLookup = await utils.findRegion(systems[i].edsmCoordX, systems[i].edsmCoordZ)
+		let regionLookup = await utils.findRegion(systems[i])
 
-		if (regionLookup.id === 0) {
+		if (regionLookup.region.id === 0) {
 			logger.warn('<-- Region not found, updating CAPI with skip count');
 
 			let skipCount = 0;
@@ -82,18 +82,20 @@ const update = async () => {
 				skipCount = skipCount + 1;
 			}
 
-			await capi.updateSystem(
-				systems[i].id,
-				{
-					missingSkipCount: skipCount,
-				},
-				jwt
-			);
+			console.log(regionLookup)
+			// await capi.updateSystem(
+			// 	systems[i].id,
+			// 	{
+			// 		missingSkipCount: skipCount,
+			// 	},
+			// 	jwt
+			// );
 		} else {
-			logger.info('<-- Region Found, updating CAPI with new region ID: ' + regionLookup.id);
-			await capi.updateSystem(systems[i].id, {region: regionLookup.id}, jwt);
+			logger.info('<-- Region Found, updating CAPI with new region ID: ' + regionLookup.region.id);
+			console.log(regionLookup)
+			//await capi.updateSystem(systems[i].id, {region: regionLookup.id}, jwt);
 		}
-		await delay(settings.scripts.edsmRegionUpdate.edsmDelay / 8);
+		await delay(settings.scripts.edsmRegionUpdate.edsmDelay * 8);
 	}
 
 	logger.stop('----------------');
