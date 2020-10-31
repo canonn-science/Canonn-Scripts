@@ -329,7 +329,10 @@ module.exports = {
 			checklist.checks.capiv2.duplicate.updateSite = true;
 		}
 
-		if (checklist.checks.capiv2.duplicate.site.discoveredBy.cmdrName === 'zzz_Unknown') {
+		if (
+			!checklist.checks.capiv2.duplicate.site.discoveredBy.cmdrName == null ||
+			checklist.checks.capiv2.duplicate.site.discoveredBy.cmdrName === 'zzz_Unknown'
+			) {
 			checklist.checks.capiv2.duplicate.updateSite = true;
 		}
 

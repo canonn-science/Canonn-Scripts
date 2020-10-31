@@ -91,7 +91,7 @@
 				"delay": 500,
 				"edsmRetry": 5
 			},
-			"acceptedTypes": ["tb", "ts"]
+			"acceptedTypes": ["tb"]
 		},
 		"guardianReportValidation": {
 			"name": "CAPIv2 Updater - Guardian Report Validator",

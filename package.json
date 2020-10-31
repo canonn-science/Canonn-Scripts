@@ -9,6 +9,8 @@
     "journalChecker": "node scripts/journalManChkWebhook/index.js",
     "baseReport": "node scripts/baseReportValidation/index.js",
     "baseReport:now": "node scripts/baseReportValidation/index.js --now",
+    "thargoidReport": "node scripts/thargoidReportValidation/index.js",
+    "thargoidReport:now": "node scripts/thargoidReportValidation/index.js --now",
     "deleteMR": "node scripts/deleteMaterialReports/index.js",
     "deleteMR:now": "node scripts/deleteMaterialReports/index.js --now",
     "edsmBody": "node scripts/edsmBodyUpdate/index.js",

@@ -19,6 +19,12 @@ module.exports = {
 				discoveredBy: undefined,
 			};
 
+			// Thargoid handling
+			if (reportchecklist.report.site === 'tb') {
+				data.subtype = 1
+				data.cycle = 1
+			}
+
 			// Create/Assign System
 			if (error === false) {
 				if (reportchecklist.checks.capiv2.system.add === true) {
