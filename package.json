@@ -9,15 +9,20 @@
     "journalChecker": "node scripts/journalManChkWebhook/index.js",
     "baseReport": "node scripts/baseReportValidation/index.js",
     "baseReport:now": "node scripts/baseReportValidation/index.js --now",
+    "thargoidReport": "node scripts/thargoidReportValidation/index.js",
+    "thargoidReport:now": "node scripts/thargoidReportValidation/index.js --now",
     "deleteMR": "node scripts/deleteMaterialReports/index.js",
     "deleteMR:now": "node scripts/deleteMaterialReports/index.js --now",
     "edsmBody": "node scripts/edsmBodyUpdate/index.js",
     "edsmBody:now": "node scripts/edsmBodyUpdate/index.js --now",
     "edsmSystem": "node scripts/edsmSystemUpdate/index.js",
-    "edsmSystem:now": "node scripts/edsmSystemUpdate/index.js --now"
+    "edsmSystem:now": "node scripts/edsmSystemUpdate/index.js --now",
+    "edsmRegion": "node scripts/edsmRegionUpdate/index.js",
+    "edsmRegion:now": "node scripts/edsmRegionUpdate/index.js --now"
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "cross-fetch": "^3.0.6",
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
@@ -30,6 +35,7 @@
     "node-fetch": "^2.6.0",
     "path": "^0.12.7",
     "perfect-logger": "^1.6.1",
+    "python-shell": "^2.0.1",
     "retry-axios": "^2.2.1"
   },
   "author": {

@@ -56,8 +56,7 @@ module.exports = {
 			const response = await fetchTools.fetchRetry(
 				url + '/auth/local',
 				settings.global.retryCount,
-				settings.global.delay,
-				{
+				settings.global.delay, {
 					method: 'POST',
 					headers: {
 						Accept: 'application/json',
@@ -116,8 +115,7 @@ module.exports = {
 			blacklistData = await fetchTools.fetchRetry(
 				blacklistURL,
 				settings.global.retryCount,
-				settings.global.delay,
-				{
+				settings.global.delay, {
 					method: 'GET',
 					headers: {
 						Accept: 'application/json',
@@ -217,21 +215,15 @@ module.exports = {
 	 * @return {Array}
 	 */
 
-	getSystems: async (start, forced, url = capiURL, limit = settings.global.capiLimit) => {
+	getSystems: async (start, forced, regionUpdate = false, url = capiURL, limit = settings.global.capiLimit) => {
 		let systemsURL;
 
-		if (forced === true) {
+		if (forced === false && regionUpdate === true) {
+			systemsURL = url + `/systems?region_null=true&_limit=${limit}&_start=${start}`;
+		} else if (forced === true) {
 			systemsURL = url + `/systems?_limit=${limit}&_start=${start}`;
 		} else {
-			systemsURL =
-				url +
-				'/systems' +
-				'?edsmCoordLocked=false' +
-				'&missingSkipCount_lt=10' +
-				'&_limit=' +
-				limit +
-				'&_start=' +
-				start;
+			systemsURL = url + `/systems?edsmCoordLocked=false&missingSkipCount_lt=10&_limit=${limit}&_start=${start}`;
 		}
 
 		let systemsData = [];
@@ -312,6 +304,26 @@ module.exports = {
 		}
 
 		let response = await fetchTools.fetchRetry(regionURL, settings.global.retryCount, settings.global.delay, {
+			method: 'GET',
+			headers: {
+				Accept: 'application/json',
+				'Content-Type': 'application/json',
+			},
+		});
+
+		return await response;
+	},
+
+	/**
+	 * Fetch all region types
+	 *
+	 * @return {Array}
+	 */
+
+	getRegions: async (url = capiURL) => {
+		const regionsURL = url + `/regions?_limit=42`;
+
+		let response = await fetchTools.fetchRetry(regionsURL, settings.global.retryCount, settings.global.delay, {
 			method: 'GET',
 			headers: {
 				Accept: 'application/json',
@@ -454,8 +466,7 @@ module.exports = {
 			reportCountData = await fetchTools.fetchRetry(
 				reportCountURL,
 				settings.global.retryCount,
-				settings.global.delay,
-				{
+				settings.global.delay, {
 					method: 'GET',
 					headers: {
 						Accept: 'application/json',
@@ -501,8 +512,7 @@ module.exports = {
 			let updatedReportData = await fetchTools.fetchRetry(
 				reportURL,
 				settings.global.retryCount,
-				settings.global.delay,
-				{
+				settings.global.delay, {
 					method: 'PUT',
 					headers: {
 						Accept: 'application/json',

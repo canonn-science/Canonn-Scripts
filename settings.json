@@ -24,6 +24,14 @@
 			"cron": ["0 2 * * *"],
 			"edsmDelay": 1500
 		},
+		"edsmRegionUpdate": {
+			"name": "CAPIv2 Updater - Region Update",
+			"version": "1.0.0",
+			"description": "Used to update the Canonn API systems Region data",
+			"enabled": true,
+			"cron": ["0 2 * * *"],
+			"edsmDelay": 1500
+		},
 		"edsmBodyUpdate": {
 			"name": "CAPIv2 Updater - Bodies Update",
 			"version": "1.0.0",
@@ -83,7 +91,7 @@
 				"delay": 500,
 				"edsmRetry": 5
 			},
-			"acceptedTypes": ["tb", "ts"]
+			"acceptedTypes": ["tb"]
 		},
 		"guardianReportValidation": {
 			"name": "CAPIv2 Updater - Guardian Report Validator",
