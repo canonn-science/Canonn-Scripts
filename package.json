@@ -32,7 +32,7 @@
     "minimist": "^1.2.5",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^2.6.1",
     "path": "^0.12.7",
     "perfect-logger": "^1.6.1",
     "python-shell": "^2.0.1",
