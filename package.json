@@ -1,7 +1,7 @@
 {
   "name": "canonn-scripts",
   "private": false,
-  "version": "1.0.1",
+  "version": "2.0.0",
   "description": "Collection of simple cron based scripts that Canonn uses for various things",
   "repository": "https://github.com/canonn-science/Canonn-Scripts.git",
   "main": "index.js",
@@ -26,9 +26,9 @@
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
-    "fs": "^0.0.1-security",
     "hookcord": "^2.0.2",
     "json-bigint": "^0.3.1",
+    "lodash": "^4.17.20",
     "minimist": "^1.2.5",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
@@ -36,7 +36,8 @@
     "path": "^0.12.7",
     "perfect-logger": "^1.6.1",
     "python-shell": "^2.0.1",
-    "retry-axios": "^2.2.1"
+    "retry-axios": "^2.2.1",
+    "yup": "^0.29.3"
   },
   "author": {
     "name": "Canonn R&D",

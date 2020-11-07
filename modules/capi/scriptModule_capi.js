@@ -1,6 +1,6 @@
 const logger = require('perfect-logger');
 const moment = require('moment');
-const fetchTools = require('../scriptModule_fetchRetry');
+const fetchTools = require('../utils/fetchRetry');
 const settings = require('../../settings.json');
 
 let capiURL;
