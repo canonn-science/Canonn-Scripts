@@ -1,4 +1,4 @@
-const { env } = require('../../modules/utils');
+const { env } = require('../modules/utils');
 
 module.exports = {
 	url: {

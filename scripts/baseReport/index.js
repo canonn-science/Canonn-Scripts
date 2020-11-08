@@ -203,13 +203,8 @@ if (params.includes('--now'.toLowerCase()) === true) {
 // Run as cron, using node id for scaling and offset (offset not implemented yet)
 if (isCron === true) {
 	logger.start('Starting in cron mode');
-	let nodeID = 0
 
-	if (process.env.NODEID) {
-		nodeID = process.env.NODEID
-	}
-
-	cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
+	cron.schedule(settings.scripts[scriptName].cron, () => {
 		validate();
 	});
 }

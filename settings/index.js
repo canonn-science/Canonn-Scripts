@@ -17,7 +17,7 @@ const deleteMR = require('./misc/deleteMR');
 const journalUpdateCheck = require('./misc/journalUpdateCheck');
 
 module.exports = {
-	global,
+	global: global,
 	scripts: {
 		baseReport,
 		guardianReport,

@@ -2,7 +2,7 @@ const rax = require('retry-axios');
 const axios = require('axios');
 const JSONbig = require('json-bigint')({ storeAsString: true });
 let logger = require('perfect-logger');
-let settings = require('../settings.json');
+let settings = require('../../settings');
 
 async function fetchRetry(url, retryCount = settings.global.retryCount, delay = settings.global.delay * 100, options) {
 	const interceptorId = rax.attach();
