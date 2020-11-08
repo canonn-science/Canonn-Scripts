@@ -1,6 +1,5 @@
 const rax = require('retry-axios');
 const axios = require('axios');
-const JSONbig = require('json-bigint')({ storeAsString: true });
 let logger = require('perfect-logger');
 let settings = require('../../settings');
 
@@ -48,7 +47,7 @@ async function fetchRetry(url, retryCount = settings.global.retryCount, delay = 
 		},
 	});
 
-	return (data = JSONbig.parse(res.data));
+	return JSON.parse(res.data);
 }
 
 module.exports = fetchRetry;
