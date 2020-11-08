@@ -2,18 +2,18 @@ const logger = require('perfect-logger');
 const capi = require('../capi');
 const utils = require('../utils');
 
-async function invalid(status, reportchecklist, jwt, url) {
+async function invalid(status, checklist, jwt, url) {
   if (status === 'duplicate') {
     logger.info('--> Updating report');
 
     let updatedReport = await capi.updateReport(
-      reportchecklist.report.site,
-      reportchecklist.report.data.id,
+      checklist.report.site,
+      checklist.report.data.id,
       {
-        reportStatus: reportchecklist.valid.reportStatus,
-        reportComment: reportchecklist.valid.reason,
+        reportStatus: checklist.valid.reportStatus,
+        reportComment: checklist.valid.reason,
         added: false,
-        site: reportchecklist.checks.capiv2.duplicate.site.id,
+        site: checklist.checks.capiv2.duplicate.site.id,
       },
       jwt,
       url
@@ -27,11 +27,11 @@ async function invalid(status, reportchecklist, jwt, url) {
     logger.info('--> Updating report');
 
     let updatedReport = await capi.updateReport(
-      reportchecklist.report.site,
-      reportchecklist.report.data.id,
+      checklist.report.site,
+      checklist.report.data.id,
       {
-        reportStatus: reportchecklist.valid.reportStatus,
-        reportComment: reportchecklist.valid.reason,
+        reportStatus: checklist.valid.reportStatus,
+        reportComment: checklist.valid.reason,
         added: false,
       },
       jwt,
