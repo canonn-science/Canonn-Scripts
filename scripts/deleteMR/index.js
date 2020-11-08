@@ -18,57 +18,59 @@ loginit(scriptName);
 
 // Delete old material reports
 const deleteMR = async () => {
-	let length = settings.scripts[scriptName].keepMonthCount;
+  let length = settings.scripts[scriptName].keepMonthCount;
 
-	// Login to the Canonn API
-	jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+  // Login to the Canonn API
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
 
-	// Grab material reports
-	logger.info('Fetching material reports older than ' + length + ' month');
+  // Grab material reports
+  logger.info('Fetching material reports older than ' + length + ' month');
 
-	// Grab total count of material reports
-	let mrCount = await capi.countMaterialReport(length);
+  // Grab total count of material reports
+  let mrCount = await capi.countMaterialReport(length);
 
-	logger.info(`There are ${mrCount} material reports to be deleted`);
+  logger.info(`There are ${mrCount} material reports to be deleted`);
 
-	if (mrCount > 0) {
-		logger.start('----------------');
-		logger.start(`Deleting ${mrCount} material reports`);
-		logger.start('----------------');
+  if (mrCount > 0) {
+    logger.start('----------------');
+    logger.start(`Deleting ${mrCount} material reports`);
+    logger.start('----------------');
 
-		try {
-			let deleteData = await capi.deleteMaterialReports(length, jwt);
+    try {
+      let deleteData = await capi.deleteMaterialReports(length, jwt);
 
-			if (deleteData.deletedRecords) {
-				logger.info(`<-- Deleted ${deleteData.deletedRecords} older than ${deleteData.intervalMonth} months`);
-			} else {
-				logger.info('<-- No records to delete');
-			}
-		} catch (e) {
-			logger.warn('Delete request failed!');
-			console.log(e);
-		}
-	}
-	logger.stop('----------------');
-	logger.stop('Script Complete!');
-	logger.stop('----------------');
+      if (deleteData.deletedRecords) {
+        logger.info(
+          `<-- Deleted ${deleteData.deletedRecords} older than ${deleteData.intervalMonth} months`
+        );
+      } else {
+        logger.info('<-- No records to delete');
+      }
+    } catch (e) {
+      logger.warn('Delete request failed!');
+      console.log(e);
+    }
+  }
+  logger.stop('----------------');
+  logger.stop('Script Complete!');
+  logger.stop('----------------');
 };
 
 if (params.includes('--now'.toLowerCase()) === true) {
-	isCron = false;
-	logger.start('Forcefully running scripts');
-	deleteMR();
+  isCron = false;
+  logger.start('Forcefully running scripts');
+  deleteMR();
 }
 
 if (isCron === true) {
-	logger.start('Starting in cron mode');
-	let nodeID = 0;
+  logger.start('Starting in cron mode');
+  let nodeID = 0;
 
-	if (process.env.NODEID) {
-		nodeID = process.env.NODEID;
-	}
+  if (process.env.NODEID) {
+    nodeID = process.env.NODEID;
+  }
 
-	cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
-		deleteMR();
-	});
+  cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
+    deleteMR();
+  });
 }

@@ -18,7 +18,8 @@
     "edsmSystem": "node scripts/edsmSystemUpdate/index.js",
     "edsmSystem:now": "node scripts/edsmSystemUpdate/index.js --now",
     "edsmRegion": "node scripts/edsmRegionUpdate/index.js",
-    "edsmRegion:now": "node scripts/edsmRegionUpdate/index.js --now"
+    "edsmRegion:now": "node scripts/edsmRegionUpdate/index.js --now",
+    "lint": "eslint modules/**/*.js settings/**/*.js scripts/**/*.js"
   },
   "dependencies": {
     "axios": "^0.19.2",
@@ -32,6 +33,10 @@
     "perfect-logger": "^1.6.1",
     "retry-axios": "^2.2.1",
     "yup": "^0.29.3"
+  },
+  "devDependencies": {
+    "babel-eslint": "^10.1.0",
+    "eslint": "^7.13.0"
   },
   "author": {
     "name": "Canonn R&D",

@@ -17,16 +17,16 @@ const deleteMR = require('./misc/deleteMR');
 const journalUpdateCheck = require('./misc/journalUpdateCheck');
 
 module.exports = {
-	global: global,
-	scripts: {
-		baseReport,
-		guardianReport,
-		orbitalReport,
-		thargoidReport,
-		bodyUpdate,
-		regionUpdate,
-		systemUpdate,
-		deleteMR,
-		journalUpdateCheck,
-	},
+  global: global,
+  scripts: {
+    baseReport,
+    guardianReport,
+    orbitalReport,
+    thargoidReport,
+    bodyUpdate,
+    regionUpdate,
+    systemUpdate,
+    deleteMR,
+    journalUpdateCheck,
+  },
 };
