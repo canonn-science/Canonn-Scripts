@@ -1,9 +1,12 @@
+const logger = require('perfect-logger');
 const capi = require('../../capi');
 
-async function cmdr(checklist) {
+let reportStatus = capi.reportStatus();
+
+async function cmdr(checklist, url) {
   let data = checklist.report.data;
 
-  let cmdrCheck = await capi.getCMDR(data.cmdrName);
+  let cmdrCheck = await capi.getCMDR(data.cmdrName, undefined, url);
 
   if (!Array.isArray(cmdrCheck) || !cmdrCheck.length) {
     checklist.checks.capiv2.cmdr = {
@@ -30,6 +33,19 @@ async function cmdr(checklist) {
         };
       }
     }
+  }
+
+  if (checklist.checks.capiv2.cmdr.checked === false) {
+    logger.warn('<-- Validation failed: Error on CMDR Check');
+    checklist.valid = reportStatus.network;
+    checklist.stopValidation = true;
+  } else if (
+    checklist.checks.capiv2.cmdr.exists === true &&
+    checklist.checks.capiv2.cmdr.data === {}
+  ) {
+    logger.warn('<-- Validation failed: Data missing on CMDR Check');
+    checklist.valid = reportStatus.network;
+    checklist.stopValidation = true;
   }
 
   return checklist;

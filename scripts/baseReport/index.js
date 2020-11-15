@@ -1,14 +1,18 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
-const loginit = require('../../modules/logger/scriptModule_loginit');
-const capi = require('../../modules/capi/scriptModule_capi');
-const validateTools = require('../../modules/validate/scriptModule_validation');
-const settings = require('../../settings.json');
+
+const loginit = require('../../modules/logger');
+const capi = require('../../modules/capi');
+const { baseReport } = require('../../modules/validate');
+const settings = require('../../settings');
+
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+// REMOVE after migration to core script
 require('dotenv').config({ path: require('find-config')('.env') });
 
 // Init some base Script values
-let scriptName = 'baseReportValidation';
+let scriptName = 'baseReport';
 let doReset = false;
 let doValidate = true;
 let isCron = true;
@@ -17,6 +21,7 @@ let jwt;
 // Load params
 let params = process.argv;
 let reportKeys = settings.scripts[scriptName].acceptedTypes;
+let reportSettings = settings.scripts[scriptName].settings;
 
 // Start the logger
 loginit(scriptName);
@@ -42,7 +47,7 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 
   // Get reports via a loop based on response length
   while (keepGoing === true) {
-    let response = await capi.getReports(type, status, start);
+    let response = await capi.getReports(type, status, start, await capi.capiURL());
 
     for (let i = 0; i < response.length; i++) {
       reports.push(response[i]);
@@ -88,7 +93,8 @@ const resetReports = async (count) => {
           {
             reportStatus: 'pending',
           },
-          jwt
+          jwt,
+          await capi.capiURL()
         );
 
         // Verify report was updated
@@ -103,7 +109,7 @@ const resetReports = async (count) => {
         }
 
         // Setting larger delay to decrease load on CAPI
-        await delay(settings.global.delay * 15);
+        await delay(reportSettings.delay);
       }
     } else {
       logger.info(`There are no ${reportKeys[r].toUpperCase()} reports marked as "issue"`);
@@ -117,13 +123,13 @@ const resetReports = async (count) => {
 // Validate reports and create/update data as needed
 const validate = async () => {
   // Login to the Canonn API
-  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, await capi.capiURL());
 
   logger.info('Getting a count of all reports');
   logger.info('----------------');
 
   // Get total counts to prevent extra load on CAPI
-  let reportCounts = await capi.getReportCount();
+  let reportCounts = await capi.getReportCount(await capi.capiURL());
 
   // If reset flag is set, reset first
   if (doReset === true) {
@@ -158,26 +164,28 @@ const validate = async () => {
           );
 
           // Fire report off to be validated and processed
-          let reportChecked = await validateTools.baseReport(
+          let reportChecked = await baseReport(
             reportKeys[l],
             toValidate[v],
             jwt,
-            bodyCache
+            bodyCache,
+            await capi.capiURL(),
+            reportSettings
           );
 
           // Push any new EDSM body lookups to cache based on if system name exists
-          if (
-            typeof reportChecked.addToCache !== 'undefined' &&
-            bodyCache.findIndex(
-              (x) => x.name.toLowerCase() == reportChecked.addToCache.name.toLowerCase()
-            ) === -1
-          ) {
-            logger.info(`<-- Added body to cache [${bodyCache.length + 1}]`);
-            bodyCache.push(reportChecked.addToCache);
-          }
+          // if (
+          //   typeof reportChecked.addToCache !== 'undefined' &&
+          //   bodyCache.findIndex(
+          //     (x) => x.name.toLowerCase() == reportChecked.addToCache.name.toLowerCase()
+          //   ) === -1
+          // ) {
+          //   logger.info(`<-- Added body to cache [${bodyCache.length + 1}]`);
+          //   bodyCache.push(reportChecked.addToCache);
+          // }
 
           // Set delay to prevent load on CAPI
-          await delay(settings.global.delay * 15);
+          await delay(reportSettings.delay);
         }
       } else {
         logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);

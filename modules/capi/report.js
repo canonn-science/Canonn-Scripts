@@ -2,13 +2,12 @@ const moment = require('moment');
 const logger = require('perfect-logger');
 const { global } = require('../../settings');
 const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
 
 let dateNow = moment().utc().format('YYYY-MM-DD hh:mm:ss');
 
 module.exports = {
   // Fetch total count of all reports
-  getReportCount: async (url = capiURL) => {
+  getReportCount: async (url) => {
     let reportCountURL = url + '/totalcount';
     let reportCountData;
 
@@ -27,7 +26,7 @@ module.exports = {
   },
 
   //Fetch an array of Reports
-  getReports: async (reportType, reportStatus, start, url = capiURL, limit = global.capiLimit) => {
+  getReports: async (reportType, reportStatus, start, url, limit = global.capiLimit) => {
     let reportsURL =
       url + `/${reportType}reports?reportStatus=${reportStatus}&_start=${start}&_limit=${limit}`;
 
@@ -47,7 +46,7 @@ module.exports = {
   },
 
   // Update report based on type and ID
-  updateReport: async (reportType, reportID, reportData, jwt, url = capiURL) => {
+  updateReport: async (reportType, reportID, reportData, jwt, url) => {
     let reportURL = url + `/${reportType}reports/${reportID}`;
 
     try {
@@ -67,7 +66,7 @@ module.exports = {
   },
 
   //Fetch an array of all Material Reports matching the filter
-  getMaterialReports: async (lengthFilter, start, url = capiURL, limit = global.capiLimit) => {
+  getMaterialReports: async (lengthFilter, start, url, limit = global.capiLimit) => {
     let mrData = [];
     let keepDate = moment().subtract(lengthFilter, 'months').utc().format();
 
@@ -93,7 +92,7 @@ module.exports = {
   },
 
   //Get a count of material reports based on a filter
-  countMaterialReport: async (lengthFilter, url = capiURL) => {
+  countMaterialReport: async (lengthFilter, url) => {
     let keepDate = moment().subtract(lengthFilter, 'months').utc().format();
 
     let mrURL = url + '/materialreports/count' + '?created_at_lte=' + keepDate;
@@ -110,7 +109,7 @@ module.exports = {
   },
 
   //Delete a material report
-  deleteMaterialReports: async (month, jwt, url = capiURL) => {
+  deleteMaterialReports: async (month, jwt, url) => {
     let mrURL = url + '/materialreports/oldbulk?month=' + month;
 
     let mrData = await fetchRetry(mrURL, global.retryCount, global.delay, {
@@ -153,24 +152,9 @@ module.exports = {
         reason: `[${dateNow}] - [DUPLICATE] - Site is a duplicate`,
         reportStatus: 'duplicate',
       },
-      missingCoords: {
+      missingData: {
         isValid: false,
-        reason: `[${dateNow}] - [DECLINED] - Report is missing Latitude or Longitude`,
-        reportStatus: 'declined',
-      },
-      missingCMDR: {
-        isValid: false,
-        reason: `[${dateNow}] - [DECLINED] - Report is missing a CMDR`,
-        reportStatus: 'declined',
-      },
-      missingFDev: {
-        isValid: false,
-        reason: `[${dateNow}] - [DECLINED] - Report is missing a Frontier ID`,
-        reportStatus: 'declined',
-      },
-      missingClient: {
-        isValid: false,
-        reason: `[${dateNow}] - [DECLINED] - Report is missing a Client Version`,
+        reason: `[${dateNow}] - [DECLINED] - Report is required data, see errors:`,
         reportStatus: 'declined',
       },
       edsmSystem: {

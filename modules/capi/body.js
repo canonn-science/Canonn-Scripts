@@ -1,11 +1,10 @@
 const logger = require('perfect-logger');
 const { global } = require('../../settings');
-const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
+const { fetchRetry } = require('../utils');
 
 module.exports = {
   // Fetch a single Body
-  getBody: async (body, bodyID, url = capiURL) => {
+  getBody: async (body, bodyID, url) => {
     var bodyURL;
     if (bodyID && (!body || body === null || typeof body === 'undefined')) {
       bodyURL = url + `/bodies/${bodyID}`;
@@ -29,7 +28,7 @@ module.exports = {
   },
 
   // Fetch an array of Bodies
-  getBodies: async (start, forced, url = capiURL, limit = global.capiLimit) => {
+  getBodies: async (start, forced, url, limit = global.capiLimit) => {
     let bodiesURL;
 
     if (forced === true) {
@@ -62,7 +61,7 @@ module.exports = {
   },
 
   // Create a single Body
-  createBody: async (bodyData, jwt, url = capiURL) => {
+  createBody: async (bodyData, jwt, url) => {
     let bodyURL = url + '/bodies';
 
     if (bodyData.bodyName === null || typeof bodyData.bodyName === 'undefined') {
@@ -87,7 +86,7 @@ module.exports = {
   },
 
   // Update a single Body
-  updateBody: async (bodyID, bodyData, jwt, url = capiURL) => {
+  updateBody: async (bodyID, bodyData, jwt, url) => {
     let bodyURL = url + `/bodies/${bodyID}`;
 
     let response = await fetchRetry(bodyURL, global.retryCount, global.delay, {

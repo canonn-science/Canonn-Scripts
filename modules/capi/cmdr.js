@@ -1,10 +1,9 @@
 const logger = require('perfect-logger');
 const { global } = require('../../settings');
 const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
 
 module.exports = {
-  getCMDR: async (cmdr, cmdrID, url = capiURL) => {
+  getCMDR: async (cmdr, cmdrID, url) => {
     var cmdrURL;
     if (cmdrID && (!cmdr || cmdr === null || typeof cmdr === 'undefined')) {
       cmdrURL = url + `/cmdrs/${cmdrID}`;
@@ -29,7 +28,7 @@ module.exports = {
   },
 
   // Create a CMDR who doesn't exist
-  createCMDR: async (cmdrData, jwt, url = capiURL) => {
+  createCMDR: async (cmdrData, jwt, url) => {
     let cmdrURL = url + '/cmdrs';
 
     if (cmdrData.cmdrName === null || typeof cmdrData.cmdrName === 'undefined') {

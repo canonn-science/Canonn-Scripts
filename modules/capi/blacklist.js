@@ -1,9 +1,8 @@
 const logger = require('perfect-logger');
 const { global } = require('../../settings');
-const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
+const { fetchRetry } = require('../utils');
 
-async function checkBlacklist(blacklistType, query, url = capiURL) {
+async function checkBlacklist(blacklistType, query, url) {
   let blacklistURL;
   if (blacklistType === 'cmdr') {
     blacklistURL = url + '/excludecmdrs?cmdrName=' + encodeURIComponent(query);

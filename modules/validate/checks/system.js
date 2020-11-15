@@ -1,10 +1,13 @@
+const logger = require('perfect-logger');
 const capi = require('../../capi');
 const edsm = require('../../edsm');
 
-async function system(checklist) {
+let reportStatus = capi.reportStatus();
+
+async function systemLookup(checklist, url) {
   let data = checklist.report.data;
 
-  let checkSystem = await capi.getSystem(data.systemName);
+  let checkSystem = await capi.getSystem(data.systemName, undefined, url);
 
   if (
     checkSystem.length === 1 &&
@@ -37,7 +40,7 @@ async function system(checklist) {
       data: {},
     };
 
-    let checkEDSM = await edsm.getSystemEDSM(data.systemName);
+    let checkEDSM = await edsm.getSystem(data.systemName);
 
     if (
       checkEDSM.id &&
@@ -90,6 +93,41 @@ async function system(checklist) {
   } else {
     return checklist;
   }
+}
+
+async function system(checklist, url) {
+  let lookup = await systemLookup(checklist, url);
+
+  let reportChecklist = await lookup;
+
+  if (reportChecklist.checks.capiv2.system.checked === false) {
+    logger.warn('<-- Validation failed: Unknown Error on CAPI System');
+    reportChecklist.valid = reportStatus.network;
+    reportChecklist.stopValidation = true;
+  } else if (
+    reportChecklist.checks.capiv2.system.exists === false &&
+    reportChecklist.checks.edsm.system.checked === false
+  ) {
+    logger.warn('<-- Validation failed: Unknown Error on EDSM System');
+    reportChecklist.valid = reportStatus.network;
+    reportChecklist.stopValidation = true;
+  } else if (
+    reportChecklist.checks.edsm.system.exists === true &&
+    reportChecklist.checks.edsm.system.hasCoords === false
+  ) {
+    logger.warn('<-- Validation failed: EDSM Missing Coords');
+    reportChecklist.valid = reportStatus.edsmCoords;
+    reportChecklist.stopValidation = true;
+  } else if (
+    reportChecklist.checks.capiv2.system.exists === false &&
+    reportChecklist.checks.edsm.system.exists === false
+  ) {
+    logger.warn('<-- Validation failed: System does not exist in EDSM');
+    reportChecklist.valid = reportStatus.edsmSystem;
+    reportChecklist.stopValidation = true;
+  }
+
+  return reportChecklist;
 }
 
 module.exports = system;

@@ -1,10 +1,9 @@
 const logger = require('perfect-logger');
 const { global } = require('../../settings');
 const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
 
 module.exports = {
-  getSystem: async (system, systemID, url = capiURL) => {
+  getSystem: async (system, systemID, url) => {
     var systemURL;
     if (systemID && (!system || system === null || typeof system === 'undefined')) {
       systemURL = url + `/systems/${systemID}`;
@@ -27,13 +26,7 @@ module.exports = {
     return await systemData;
   },
 
-  getSystems: async (
-    start,
-    forced,
-    regionUpdate = false,
-    url = capiURL,
-    limit = global.capiLimit
-  ) => {
+  getSystems: async (start, forced, regionUpdate = false, url, limit = global.capiLimit) => {
     let systemsURL;
 
     if (forced === false && regionUpdate === true) {
@@ -61,7 +54,7 @@ module.exports = {
     return await systemsData;
   },
 
-  createSystem: async (systemData, jwt, url = capiURL) => {
+  createSystem: async (systemData, jwt, url) => {
     let systemURL = url + '/systems';
 
     if (systemData.systemName === null || typeof systemData.systemName === 'undefined') {
@@ -81,7 +74,7 @@ module.exports = {
     }
   },
 
-  updateSystem: async (systemID, systemData, jwt, url = capiURL) => {
+  updateSystem: async (systemID, systemData, jwt, url) => {
     let systemURL = url + `/systems/${systemID}`;
 
     let response = await fetchRetry(systemURL, global.retryCount, global.delay, {

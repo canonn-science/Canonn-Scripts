@@ -1,10 +1,9 @@
 const { global } = require('../../settings');
 const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
 
 module.exports = {
   // Get type to validate against
-  getType: async (reportType, type, url = capiURL) => {
+  getType: async (reportType, type, url) => {
     let typeURL = url + `/${reportType}types?type=` + encodeURIComponent(type);
 
     let response = await fetchRetry(5, typeURL, {
@@ -18,7 +17,7 @@ module.exports = {
     return await response.json();
   },
 
-  getTypes: async (siteType, url = capiURL, limit = global.capiLimit) => {
+  getTypes: async (siteType, url, limit = global.capiLimit) => {
     let types = [];
     let keepGoing = true;
     let API_START = 0;

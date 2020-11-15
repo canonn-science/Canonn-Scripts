@@ -23,7 +23,9 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
+    "find-config": "^1.0.0",
     "hookcord": "^2.0.2",
     "lodash": "^4.17.20",
     "minimist": "^1.2.5",

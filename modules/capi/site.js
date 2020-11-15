@@ -1,9 +1,8 @@
 const { global } = require('../../settings');
 const { fetchRetry, env } = require('../utils');
-const { capiURL } = require('./api.js');
 
 // Used to fetch the highest siteID to create a new site
-let getSiteID = async (siteType, url = capiURL) => {
+let getSiteID = async (siteType, url) => {
   let siteIDURL = url + `/${siteType}sites?_limit=1&_sort=siteID:desc`;
   const response = await fetchRetry(siteIDURL, global.retryCount, global.delay, {
     method: 'GET',
@@ -25,7 +24,7 @@ let getSiteID = async (siteType, url = capiURL) => {
 
 module.exports = {
   // Get a single site by ID or fetch all sites matching a body
-  getSites: async (reportType, body, siteID, url = capiURL, limit = global.capiLimit) => {
+  getSites: async (reportType, body, siteID, url, limit = global.capiLimit) => {
     let sites = [];
     let keepGoing = true;
     let API_START = 0;
@@ -60,7 +59,7 @@ module.exports = {
   },
 
   // Create site if report is valid
-  createSite: async (siteType, siteData, jwt, url = capiURL) => {
+  createSite: async (siteType, siteData, jwt, url) => {
     if (!siteData.siteID) {
       siteData.siteID = await getSiteID(siteType, url);
     }
@@ -80,7 +79,7 @@ module.exports = {
   },
 
   // Update site if new data exists in a report
-  updateSite: async (siteType, siteID, siteData, jwt, url = capiURL) => {
+  updateSite: async (siteType, siteID, siteData, jwt, url) => {
     let siteURL = url + `/${siteType}sites/${siteID}`;
     let response = await fetchRetry(siteURL, global.retryCount, global.delay, {
       method: 'PUT',

@@ -1,11 +1,13 @@
+const logger = require('perfect-logger');
 const capi = require('../../capi');
 const utils = require('../../utils');
-const settings = require('../../../settings');
 
-async function duplicate(checklist) {
+let reportStatus = capi.reportStatus();
+
+async function duplicate(checklist, range, url) {
   let data = checklist.report.data;
 
-  let checkDuplicate = await capi.getSites(checklist.report.site, data.bodyName);
+  let checkDuplicate = await capi.getSites(checklist.report.site, data.bodyName, undefined, url);
 
   if (!Array.isArray(checkDuplicate) || !checkDuplicate.length) {
     checklist.checks.capiv2.duplicate = {
@@ -69,20 +71,32 @@ async function duplicate(checklist) {
         checklist.checks.capiv2.duplicate.site = checkDuplicate[i];
       }
 
-      if (
-        internalChecks.distance <= settings.scripts.baseReportValidation.settings.duplicateRange
-      ) {
+      if (internalChecks.distance <= range) {
         checklist.checks.capiv2.duplicate.isDuplicate = true;
         checklist.checks.capiv2.duplicate.site = checkDuplicate[i];
-      } else if (
-        internalChecks.distance > settings.scripts.baseReportValidation.settings.duplicateRange &&
-        internalChecks.FIDMatch === false
-      ) {
+      } else if (internalChecks.distance > range && internalChecks.FIDMatch === false) {
         checklist.checks.capiv2.duplicate.isDuplicate = false;
         checklist.checks.capiv2.duplicate.createSite = true;
       }
     }
   }
+
+  if (
+    checklist.checks.capiv2.duplicate.createSite === false &&
+    checklist.checks.capiv2.duplicate.isDuplicate === false
+  ) {
+    logger.warn('<-- Validation failed: Error on Duplicate Check');
+    checklist.valid = reportStatus.network;
+    checklist.stopValidation = true;
+  } else if (
+    checklist.checks.capiv2.duplicate.isDuplicate === true &&
+    checklist.checks.capiv2.duplicate.site === {}
+  ) {
+    logger.warn('<-- Validation failed: Site missing on Duplicate Check');
+    checklist.valid = reportStatus.network;
+    checklist.stopValidation = true;
+  }
+
   return checklist;
 }
 

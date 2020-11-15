@@ -1,11 +1,14 @@
+const logger = require('perfect-logger');
 const capi = require('../../capi');
 const edsm = require('../../edsm');
 
-async function body(checklist, bodyCache) {
+let reportStatus = capi.reportStatus();
+
+async function bodyLookup(checklist, bodyCache, url) {
   let data = checklist.report.data;
 
   // Check CAPI
-  let checkBody = await capi.getBody(data.bodyName);
+  let checkBody = await capi.getBody(data.bodyName, undefined, url);
 
   if (checkBody.length >= 1) {
     for (let i = 0; i < checkBody.length; i++) {
@@ -45,7 +48,7 @@ async function body(checklist, bodyCache) {
     }
 
     // Check EDSM
-    let checkEDSM = await edsm.getBodyEDSM(data.systemName);
+    let checkEDSM = await edsm.getBody(data.systemName);
 
     if (
       checkEDSM.name.toLowerCase() === data.systemName.toLowerCase() &&
@@ -97,6 +100,34 @@ async function body(checklist, bodyCache) {
   } else {
     return checklist;
   }
+}
+
+async function body(checklist, bodyCache, url) {
+  let lookup = await bodyLookup(checklist, bodyCache, url);
+
+  let reportChecklist = await lookup;
+
+  if (reportChecklist.checks.capiv2.body.checked === false) {
+    logger.warn('<-- Validation failed: Unknown Error on CAPI Body');
+    reportChecklist.valid = reportStatus.network;
+    reportChecklist.stopValidation = true;
+  } else if (
+    reportChecklist.checks.capiv2.body.exists === false &&
+    reportChecklist.checks.edsm.body.checked === false
+  ) {
+    logger.warn('<-- Validation failed: Unknown Error on EDSM Body');
+    reportChecklist.valid = reportStatus.network;
+    reportChecklist.stopValidation = true;
+  } else if (
+    reportChecklist.checks.capiv2.body.exists === false &&
+    reportChecklist.checks.edsm.body.exists === false
+  ) {
+    logger.warn('<-- Validation failed: Body does not exist in EDSM');
+    reportChecklist.valid = reportStatus.edsmBody;
+    reportChecklist.stopValidation = true;
+  }
+
+  return reportChecklist;
 }
 
 module.exports = body;

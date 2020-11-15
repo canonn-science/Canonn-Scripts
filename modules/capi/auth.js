@@ -1,9 +1,8 @@
 const logger = require('perfect-logger');
 const { global } = require('../../settings');
 const { fetchRetry } = require('../utils');
-const { capiURL } = require('./api.js');
 
-async function login(username, password, url = capiURL) {
+async function login(username, password, url) {
   logger.info('----------------');
   logger.info('Logging into the Canonn API');
 
