@@ -33,7 +33,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   logger.info('--> Running Validation Checks');
 
   // Do yup validation for missing data
-  logger.info('Missing Check');
   try {
     let checkMissing = await yupValidate(baseSchema.report, reportData);
     if (checkMissing.isValid === false) {
@@ -59,7 +58,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do beta validation
-  logger.info('Beta Check');
   try {
     if (reportChecklist.stopValidation === false) {
       if (reportData.isBeta === true) {
@@ -76,7 +74,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do blacklist check
-  logger.info('Blacklist Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let isBlacklisted = await checks.blacklist(reportChecklist, url);
@@ -97,7 +94,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do system check
-  logger.info('System Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let checkSystem = await checks.system(reportChecklist, url);
@@ -118,7 +114,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do body check
-  logger.info('Body Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let checkBody = await checks.body(reportChecklist, bodyCache, url);
@@ -139,7 +134,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do type check
-  logger.info('Type Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let checkType = await checks.type(reportChecklist, url);
@@ -160,7 +154,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // do cmdr check
-  logger.info('CMDR Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let checkCMDR = await checks.cmdr(reportChecklist, url);
@@ -181,7 +174,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do duplicate check
-  logger.info('Duplication Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let checkDuplicate = await checks.duplicate(reportChecklist, settings.duplicateRange, url);
@@ -202,7 +194,6 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Do update check
-  logger.info('Update Check');
   try {
     if (reportChecklist.stopValidation === false) {
       let checkUpdate = await checks.update(reportChecklist);
