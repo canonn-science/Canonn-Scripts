@@ -187,8 +187,6 @@ const validate = async () => {
             bodyCache.push(reportChecked.addToCache);
           }
 
-          console.log(reportChecked.checklist.valid.reason);
-
           // Set delay to prevent load on CAPI
           await delay(reportSettings.delay);
         }
