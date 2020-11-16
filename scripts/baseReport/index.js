@@ -39,7 +39,7 @@ if (params.includes('--novalidate'.toLowerCase()) === true) {
 }
 
 // Ask CAPI for reports
-const fetchReports = async (type, status, start, limit = settings.global.capiLimit) => {
+const fetchReports = async (type, status, start, limit = settings.global.capiLimit, url) => {
   logger.info(`Fetching ${status} ${type.toUpperCase()} reports from Canonn API`);
   let keepGoing = true;
 
@@ -47,7 +47,7 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 
   // Get reports via a loop based on response length
   while (keepGoing === true) {
-    let response = await capi.getReports(type, status, start, await capi.capiURL());
+    let response = await capi.getReports(type, status, start, url);
 
     for (let i = 0; i < response.length; i++) {
       reports.push(response[i]);
@@ -66,7 +66,7 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 };
 
 // Reset reports from "issue" to "pending"
-const resetReports = async (count) => {
+const resetReports = async (count, url) => {
   logger.warn('Performing issue report reset');
   logger.info('----------------');
   for (let r = 0; r < reportKeys.length; r++) {
@@ -75,7 +75,7 @@ const resetReports = async (count) => {
     // Loop through accepted types and reset all of them
     if (count.data[reportKeys[r]].reports.issue > 0) {
       // Fetch list of issue reports
-      let resetList = await fetchReports(reportKeys[r], 'issue', 0);
+      let resetList = await fetchReports(reportKeys[r], 'issue', 0, undefined, url);
 
       // Loop through list and fire report updates
       for (let z = 0; z < resetList.length; z++) {
@@ -94,7 +94,7 @@ const resetReports = async (count) => {
             reportStatus: 'pending',
           },
           jwt,
-          await capi.capiURL()
+          url
         );
 
         // Verify report was updated
@@ -122,18 +122,21 @@ const resetReports = async (count) => {
 
 // Validate reports and create/update data as needed
 const validate = async () => {
+  // Grab URL
+  let url = await capi.capiURL();
+
   // Login to the Canonn API
-  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, await capi.capiURL());
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, url);
 
   logger.info('Getting a count of all reports');
   logger.info('----------------');
 
   // Get total counts to prevent extra load on CAPI
-  let reportCounts = await capi.getReportCount(await capi.capiURL());
+  let reportCounts = await capi.getReportCount(url);
 
   // If reset flag is set, reset first
   if (doReset === true) {
-    await resetReports(reportCounts);
+    await resetReports(reportCounts, url);
   }
 
   // If validation flag is set, skip validation
@@ -153,7 +156,7 @@ const validate = async () => {
         logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`);
 
         // Fetch reports (loop to fetch all)
-        let toValidate = await fetchReports(reportKeys[l], 'pending', 0);
+        let toValidate = await fetchReports(reportKeys[l], 'pending', 0, undefined, url);
 
         // Validate each report in the type
         for (let v = 0; v < toValidate.length; v++) {
@@ -169,20 +172,22 @@ const validate = async () => {
             toValidate[v],
             jwt,
             bodyCache,
-            await capi.capiURL(),
+            url,
             reportSettings
           );
 
           // Push any new EDSM body lookups to cache based on if system name exists
-          // if (
-          //   typeof reportChecked.addToCache !== 'undefined' &&
-          //   bodyCache.findIndex(
-          //     (x) => x.name.toLowerCase() == reportChecked.addToCache.name.toLowerCase()
-          //   ) === -1
-          // ) {
-          //   logger.info(`<-- Added body to cache [${bodyCache.length + 1}]`);
-          //   bodyCache.push(reportChecked.addToCache);
-          // }
+          if (
+            typeof reportChecked.addToCache !== 'undefined' &&
+            bodyCache.findIndex(
+              (x) => x.name.toLowerCase() == reportChecked.addToCache.name.toLowerCase()
+            ) === -1
+          ) {
+            logger.info(`<-- Added body to cache [${bodyCache.length + 1}]`);
+            bodyCache.push(reportChecked.addToCache);
+          }
+
+          console.log(reportChecked.checklist.valid.reason);
 
           // Set delay to prevent load on CAPI
           await delay(reportSettings.delay);

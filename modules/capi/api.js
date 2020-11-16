@@ -1,12 +1,12 @@
-const { global } = require('../../settings');
+const envSettings = require('../../settings/global');
 
 async function capiURL() {
   let url;
 
   if (process.env.NODE_ENV) {
-    url = global.url[process.env.NODE_ENV.toLowerCase()];
+    url = envSettings.url[process.env.NODE_ENV.toLowerCase()];
   } else {
-    url = global.url.local;
+    url = envSettings.url.local;
   }
 
   return url;

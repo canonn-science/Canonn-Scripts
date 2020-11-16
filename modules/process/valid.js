@@ -28,7 +28,7 @@ async function valid(status, checklist, jwt, url) {
     if (error === false) {
       if (checklist.checks.capiv2.system.add === true) {
         logger.info('--> Creating new System');
-        let newsysData = await utils.processSystem('edsm', checklist.checks.edsm.system.data);
+        let newsysData = await utils.processSystem('edsm', checklist.checks.edsm.system.data, url);
 
         // Assign region if it exists
         if (checklist.report.data.regionID) {
@@ -251,3 +251,5 @@ async function valid(status, checklist, jwt, url) {
     }
   }
 }
+
+module.exports = valid;

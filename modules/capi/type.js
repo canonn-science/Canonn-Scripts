@@ -1,5 +1,5 @@
-const { global } = require('../../settings');
-const { fetchRetry, env } = require('../utils');
+const global = require('../../settings/global');
+const fetchRetry = require('../utils/fetchRetry');
 
 module.exports = {
   // Get type to validate against

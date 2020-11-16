@@ -1,6 +1,5 @@
 const logger = require('perfect-logger');
 const capi = require('../capi');
-const utils = require('../utils');
 
 async function invalid(status, checklist, jwt, url) {
   if (status === 'duplicate') {
@@ -44,3 +43,5 @@ async function invalid(status, checklist, jwt, url) {
     };
   }
 }
+
+module.exports = invalid;

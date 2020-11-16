@@ -1,14 +1,14 @@
-const capi = require('../capi/scriptModule_capi');
+const capi = require('../capi');
 
-async function processSystem(source, data) {
+async function processSystem(source, data, url) {
   let newData = {};
 
   if (data.regionID) {
-    let regionRequest = await capi.getRegion(undefined, data.regionID);
+    let regionRequest = await capi.getRegion(undefined, data.regionID, url);
     newData.region = regionRequest.id;
     newData.region = data.regionID;
   } else if (data.regionName) {
-    let regionRequest = await capi.getRegion(data.regionName);
+    let regionRequest = await capi.getRegion(data.regionName, url);
     newData.region = regionRequest.id;
   }
 

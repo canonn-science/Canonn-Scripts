@@ -1,14 +1,8 @@
 const rax = require('retry-axios');
 const axios = require('axios');
 let logger = require('perfect-logger');
-let settings = require('../../settings');
 
-async function fetchRetry(
-  url,
-  retryCount = settings.global.retryCount,
-  delay = settings.global.delay * 100,
-  options
-) {
+async function fetchRetry(url, retryCount, delay, options) {
   const interceptorId = rax.attach();
   const res = await axios({
     method: options.method,

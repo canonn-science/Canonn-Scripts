@@ -1,5 +1,5 @@
-const { global } = require('../../settings');
-const { fetchRetry, env } = require('../utils');
+const global = require('../../settings/global');
+const fetchRetry = require('../utils/fetchRetry');
 
 // Used to fetch the highest siteID to create a new site
 let getSiteID = async (siteType, url) => {

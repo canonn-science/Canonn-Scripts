@@ -1,32 +1,13 @@
 const logger = require('perfect-logger');
-const checks = require('../checks');
 const process = require('../../process');
 const capi = require('../../capi');
+const { yupValidate } = require('../../utils');
+const checks = require('../checks');
 const { baseChecklist } = require('../checklist');
 const { baseSchema } = require('../schemas');
+const { baseValidate } = require('../validations');
 
 let reportStatus = capi.reportStatus();
-
-async function yupValidate(schema, data) {
-  return await schema
-    .validate(data, { abortEarly: false })
-    .then((valid) => {
-      let data = {
-        isValid: true,
-        valid,
-      };
-
-      return data;
-    })
-    .catch((err) => {
-      let data = {
-        isValid: false,
-        errors: err.errors,
-      };
-
-      return data;
-    });
-}
 
 async function baseReport(reportType, reportData, jwt, bodyCache, url, settings) {
   let reportChecklist = await baseChecklist(reportType, reportData);
@@ -214,13 +195,42 @@ async function baseReport(reportType, reportData, jwt, bodyCache, url, settings)
   }
 
   // Yup validation of all checks
+  let isValid = await baseValidate(reportChecklist);
+
+  if (isValid) {
+    reportChecklist = isValid;
+  } else {
+    reportChecklist.valid = reportStatus.network;
+  }
 
   // Run process
+  let data = {};
+  if (reportChecklist.valid.isValid === true) {
+    if (reportChecklist.checks.capiv2.duplicate.updateSite === true) {
+      logger.info('<-- Report is an update');
+      let newDuplicate = await process.valid('update', reportChecklist, jwt, url);
+      data = newDuplicate;
+    } else {
+      logger.info('<-- Report is valid');
+      let newValid = await process.valid('new', reportChecklist, jwt, url);
+      data = newValid;
+    }
+  } else if (reportChecklist.valid.reportStatus === 'duplicate') {
+    logger.info('<-- Report is a duplicate');
+    let newInvalid = await process.invalid('duplicate', reportChecklist, jwt, url);
+    data = newInvalid;
+  } else {
+    logger.info('<-- Report is invalid');
+    let newInvalid = await process.invalid('invalid', reportChecklist, jwt, url);
+    data = newInvalid;
+  }
 
   // Return data to main
-  console.log(reportChecklist.checks);
-  // console.log(reportChecklist.checks);
-  // console.log(reportChecklist.valid);
+  return {
+    checklist: reportChecklist,
+    data: data,
+    addToCache: reportChecklist.addToCache,
+  };
 }
 
 module.exports = baseReport;

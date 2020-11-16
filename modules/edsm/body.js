@@ -1,4 +1,4 @@
-const { fetchRetry } = require('../utils');
+const fetchRetry = require('../utils/fetchRetry');
 
 // Fetch EDSM Body
 async function getBody(system) {

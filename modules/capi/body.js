@@ -1,6 +1,6 @@
 const logger = require('perfect-logger');
-const { global } = require('../../settings');
-const { fetchRetry } = require('../utils');
+const global = require('../../settings/global');
+const fetchRetry = require('../utils/fetchRetry');
 
 module.exports = {
   // Fetch a single Body

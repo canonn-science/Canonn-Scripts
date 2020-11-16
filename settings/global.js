@@ -1,5 +1,3 @@
-const { env } = require('../modules/utils');
-
 module.exports = {
   url: {
     production: 'https://api.canonn.tech',
