@@ -1,14 +1,19 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
-const loginit = require('../../modules/logger/scriptModule_loginit');
-const capi = require('../../modules/capi/scriptModule_capi');
-const validateTools = require('../../modules/validate/scriptModule_validation');
-const settings = require('../../settings.json');
+
+const loginit = require('../../modules/logger');
+const capi = require('../../modules/capi');
+
+const { guardianReport } = require('../../modules/validate');
+const settings = require('../../settings');
+
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+// REMOVE after migration to core script
 require('dotenv').config({ path: require('find-config')('.env') });
 
 // Init some base Script values
-let scriptName = 'guardianReportValidation';
+let scriptName = 'guardianReport';
 let doReset = false;
 let doValidate = true;
 let isCron = true;
@@ -17,6 +22,7 @@ let jwt;
 // Load params
 let params = process.argv;
 let reportKeys = settings.scripts[scriptName].acceptedTypes;
+let reportSettings = settings.scripts[scriptName].settings;
 
 // Start the logger
 loginit(scriptName);
@@ -34,7 +40,7 @@ if (params.includes('--novalidate'.toLowerCase()) === true) {
 }
 
 // Ask CAPI for reports
-const fetchReports = async (type, status, start, limit = settings.global.capiLimit) => {
+const fetchReports = async (type, status, start, limit = settings.global.capiLimit, url) => {
   logger.info(`Fetching ${status} ${type.toUpperCase()} reports from Canonn API`);
   let keepGoing = true;
 
@@ -42,7 +48,7 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 
   // Get reports via a loop based on response length
   while (keepGoing === true) {
-    let response = await capi.getReports(type, status, start);
+    let response = await capi.getReports(type, status, start, url);
 
     for (let i = 0; i < response.length; i++) {
       reports.push(response[i]);
@@ -61,7 +67,7 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 };
 
 // Reset reports from "issue" to "pending"
-const resetReports = async (count) => {
+const resetReports = async (count, url) => {
   logger.warn('Performing issue report reset');
   logger.info('----------------');
   for (let r = 0; r < reportKeys.length; r++) {
@@ -70,7 +76,7 @@ const resetReports = async (count) => {
     // Loop through accepted types and reset all of them
     if (count.data[reportKeys[r]].reports.issue > 0) {
       // Fetch list of issue reports
-      let resetList = await fetchReports(reportKeys[r], 'issue', 0);
+      let resetList = await fetchReports(reportKeys[r], 'issue', 0, undefined, url);
 
       // Loop through list and fire report updates
       for (let z = 0; z < resetList.length; z++) {
@@ -88,7 +94,8 @@ const resetReports = async (count) => {
           {
             reportStatus: 'pending',
           },
-          jwt
+          jwt,
+          url
         );
 
         // Verify report was updated
@@ -103,7 +110,7 @@ const resetReports = async (count) => {
         }
 
         // Setting larger delay to decrease load on CAPI
-        await delay(settings.global.delay * 15);
+        await delay(reportSettings.delay);
       }
     } else {
       logger.info(`There are no ${reportKeys[r].toUpperCase()} reports marked as "issue"`);
@@ -116,18 +123,21 @@ const resetReports = async (count) => {
 
 // Validate reports and create/update data as needed
 const validate = async () => {
+  // Grab URL
+  let url = await capi.capiURL();
+
   // Login to the Canonn API
-  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, url);
 
   logger.info('Getting a count of all reports');
   logger.info('----------------');
 
   // Get total counts to prevent extra load on CAPI
-  let reportCounts = await capi.getReportCount();
+  let reportCounts = await capi.getReportCount(url);
 
   // If reset flag is set, reset first
   if (doReset === true) {
-    await resetReports(reportCounts);
+    await resetReports(reportCounts, url);
   }
 
   // If validation flag is set, skip validation
@@ -147,7 +157,7 @@ const validate = async () => {
         logger.info(`Validating ${reportKeys[l].toUpperCase()} Reports`);
 
         // Fetch reports (loop to fetch all)
-        let toValidate = await fetchReports(reportKeys[l], 'pending', 0);
+        let toValidate = await fetchReports(reportKeys[l], 'pending', 0, undefined, url);
 
         // Validate each report in the type
         for (let v = 0; v < toValidate.length; v++) {
@@ -158,11 +168,13 @@ const validate = async () => {
           );
 
           // Fire report off to be validated and processed
-          let reportChecked = await validateTools.guardianReport(
+          let reportChecked = await guardianReport(
             reportKeys[l],
             toValidate[v],
             jwt,
-            bodyCache
+            bodyCache,
+            url,
+            reportSettings
           );
 
           // Push any new EDSM body lookups to cache based on if system name exists
@@ -177,7 +189,7 @@ const validate = async () => {
           }
 
           // Set delay to prevent load on CAPI
-          await delay(settings.global.delay * 15);
+          await delay(reportSettings.delay);
         }
       } else {
         logger.info(`There are no ${reportKeys[l].toUpperCase()} reports to process`);
@@ -208,13 +220,8 @@ if (params.includes('--now'.toLowerCase()) === true) {
 // Run as cron, using node id for scaling and offset (offset not implemented yet)
 if (isCron === true) {
   logger.start('Starting in cron mode');
-  let nodeID = 0;
 
-  if (process.env.NODEID) {
-    nodeID = process.env.NODEID;
-  }
-
-  cron.schedule(settings.scripts[scriptName].cron[nodeID], () => {
+  cron.schedule(settings.scripts[scriptName].cron, () => {
     validate();
   });
 }

@@ -10,7 +10,7 @@ module.exports = {
     duplicateRange: 5,
     cmdrBlacklist: true,
     clientBlacklist: true,
-    delay: 500,
+    delay: 1500,
     edsmRetry: 5,
   },
   acceptedTypes: ['gs'],

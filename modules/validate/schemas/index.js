@@ -1,7 +1,9 @@
 const baseSchema = require('./baseSchema');
-const guardianSchema = './guardianSchema';
+const guardianSchema = require('./guardianSchema');
+const thargoidSchema = require('./thargoidSchema');
 
 module.exports = {
   baseSchema,
   guardianSchema,
+  thargoidSchema,
 };

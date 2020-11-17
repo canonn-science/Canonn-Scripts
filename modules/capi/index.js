@@ -16,6 +16,8 @@ const {
 } = require('./report');
 const { getSites, createSite, updateSite } = require('./site');
 const { getType, getTypes } = require('./type');
+const { getSubtype, getSubtypes } = require('./subtype');
+const { getCycle, getCycles } = require('./cycle');
 
 module.exports = {
   capiURL,
@@ -45,4 +47,8 @@ module.exports = {
   updateSite,
   getType,
   getTypes,
+  getSubtype,
+  getSubtypes,
+  getCycle,
+  getCycles,
 };
