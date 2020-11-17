@@ -62,6 +62,6 @@ typings/
 .next
 
 # Canonn Script Files
-scripts/journalManChkWebhook/data/*
-!scripts/journalManChkWebhook/data/.gitkeep
-!scripts/journalManChkWebhook/data/example.json
+scripts/journalUpdateCheck/data/*
+!scripts/journalUpdateCheck/data/latest.json.example
+!scripts/journalUpdateCheck/data/.gitkeep
