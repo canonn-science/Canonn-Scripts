@@ -160,3 +160,7 @@ These are just various helpful little scripts Canonn uses to perform some automa
 This is used to check the Frontier URLs for new Journal Manuals. All previously known manuals are cached here and can be found in the [data directory](./scripts/journalUpdateCheck/data/).
 
 This script is currently pending a massive refactoring and should not be used as is.
+
+## Modules
+
+There are various modules contained within the [modules directory](./modules), these are mostly reusable functions that are used in various scripts and function kind of like an SDK for the Canonn API. Most are very narrowly scoped to these scripts and won't really provide much benefit outside of this project.
