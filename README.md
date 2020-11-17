@@ -48,7 +48,7 @@ To run the command you simply need to execute the node script via one of the fol
 
 - `yarn baseReport`
 - `npm run baseReport`
-- `pm2 start npm --name="some-process-name-here" -- run baseReport`
+- `pm2 start npm --name="baseReport" -- run baseReport`
 
 There are also various flags that can be used based on needs:
 
@@ -67,7 +67,7 @@ To run the command you simply need to execute the node script via one of the fol
 
 - `yarn guardianReport`
 - `npm run guardianReport`
-- `pm2 start npm --name="some-process-name-here" -- run guardianReport`
+- `pm2 start npm --name="guardianReport" -- run guardianReport`
 
 There are also various flags that can be used based on needs:
 
@@ -86,7 +86,7 @@ To run the command you simply need to execute the node script via one of the fol
 
 - `yarn thargoidReport`
 - `npm run thargoidReport`
-- `pm2 start npm --name="some-process-name-here" -- run thargoidReport`
+- `pm2 start npm --name="thargoidReport" -- run thargoidReport`
 
 There are also various flags that can be used based on needs:
 
@@ -113,6 +113,12 @@ This script is currently planned but has not been implemented, it will eventuall
 
 This script simply prunes our Material report data to keep only a certain number of months, typically only 1 month of material data is kept in order to decrease the size of the Canonn API database.
 
+To run the command you simply need to execute the node script via one of the following methods:
+
+- `yarn deleteMR`
+- `npm run deleteMR`
+- `pm2 start npm --name="deleteMR" -- run deleteMR`
+
 There is a single flag that can be used based on need:
 
 - `--now` => Will not start in cron mode and will execute immediately, dumping log output to stdout and the standard log file.
@@ -128,6 +134,12 @@ Used to keep the Canonn API systems database in sync with EDSM. The following fi
 - `edsmCoordLocked=false` => If the X, Y, and Z GalCoords are not considered "locked" by EDSM.
 - `missingSkipCount_lt=10` => Less than 10, note that missing skip count is an integer between 0 and 10 based on how many tries we have attempted to get valid data from EDSM. If this number meets or exceeds 10, we will no longer try to sync the data.
 
+To run the command you simply need to execute the node script via one of the following methods:
+
+- `yarn systemUpdate`
+- `npm run systemUpdate`
+- `pm2 start npm --name="systemUpdate" -- run systemUpdate`
+
 There are also various flags that can be used based on needs:
 
 - `--force` => Skip the above listed filters and pull all systems from the Canonn API to forcefully sync with EDSM. **USE WITH CAUTION** as you will likely exceed the EDSM rate-limit if the delay is not set high enough. This will also take a large amount of time.
@@ -140,6 +152,12 @@ Used to keep the Canonn API bodies database in sync with EDSM. The following fil
 
 - `edsmID_null=true` => If we do not have a valid EDSM Body ID, basically checking if the body exists in EDSM. Typically these bodies were before we enforced the body data to be in EDSM before approving a site. New reports will be marked as `issue` if the body doesn't exist.
 - `missingSkipCount_lt=10` => Less than 10, note that missing skip count is an integer between 0 and 10 based on how many tries we have attempted to get valid data from EDSM. If this number meets or exceeds 10, we will no longer try to sync the data.
+
+To run the command you simply need to execute the node script via one of the following methods:
+
+- `yarn bodyUpdate`
+- `npm run bodyUpdate`
+- `pm2 start npm --name="bodyUpdate" -- run bodyUpdate`
 
 There are also various flags that can be used based on needs:
 
