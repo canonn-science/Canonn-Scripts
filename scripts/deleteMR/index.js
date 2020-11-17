@@ -1,12 +1,14 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
-const loginit = require('../../modules/logger/scriptModule_loginit');
-const capi = require('../../modules/capi/scriptModule_capi');
-const settings = require('../../settings.json');
+const loginit = require('../../modules/logger');
+const capi = require('../../modules/capi');
+const settings = require('../../settings');
+
+// REMOVE after migration to core script
 require('dotenv').config({ path: require('find-config')('.env') });
 
 // Init some base Script values
-let scriptName = 'deleteMaterialReports';
+let scriptName = 'deleteMR';
 let isCron = true;
 let jwt;
 
@@ -20,14 +22,17 @@ loginit(scriptName);
 const deleteMR = async () => {
   let length = settings.scripts[scriptName].keepMonthCount;
 
+  // Grab URL
+  let url = await capi.capiURL();
+
   // Login to the Canonn API
-  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, url);
 
   // Grab material reports
   logger.info('Fetching material reports older than ' + length + ' month');
 
   // Grab total count of material reports
-  let mrCount = await capi.countMaterialReport(length);
+  let mrCount = await capi.countMaterialReport(length, url);
 
   logger.info(`There are ${mrCount} material reports to be deleted`);
 
@@ -37,7 +42,7 @@ const deleteMR = async () => {
     logger.start('----------------');
 
     try {
-      let deleteData = await capi.deleteMaterialReports(length, jwt);
+      let deleteData = await capi.deleteMaterialReports(length, jwt, url);
 
       if (deleteData.deletedRecords) {
         logger.info(

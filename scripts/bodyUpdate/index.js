@@ -1,19 +1,24 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
-const loginit = require('../../modules/logger/scriptModule_loginit');
-const edsm = require('../../modules/edsm/scriptModule_edsm');
-const capi = require('../../modules/capi/scriptModule_capi');
-const utils = require('../../modules/utils/scriptModule_utils');
-const settings = require('../../settings.json');
+
+const loginit = require('../../modules/logger');
+const capi = require('../../modules/capi');
+const edsm = require('../../modules/edsm');
+const utils = require('../../modules/utils');
+const settings = require('../../settings');
+
 const params = require('minimist')(process.argv.slice(2));
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+// REMOVE after migration to core script
 require('dotenv').config({ path: require('find-config')('.env') });
 
 // Init some base Script values
-let scriptName = 'edsmBodyUpdate';
+let scriptName = 'bodyUpdate';
 let isForced = false;
 let isCron = true;
 let jwt;
+let updateSettings = settings.scripts[scriptName];
 
 // Start the logger
 loginit(scriptName);
@@ -21,13 +26,13 @@ loginit(scriptName);
 // Switch between forced updates
 if (params.force === true) {
   isForced = true;
-  logger.warn('Forcfully updating all bodies');
+  logger.warn('Forcefully updating all bodies');
 }
 
 // Ask CAPI for bodies
-const fetchBodies = async (start, limit = settings.global.capiLimit) => {
+const fetchBodies = async (start, limit = settings.global.capiLimit, url) => {
   // Login to the Canonn API
-  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, url);
 
   // Grab systems with bodies
   logger.info('Fetching bodies from Canonn API');
@@ -36,7 +41,7 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
   let bodies = [];
 
   while (keepGoing === true) {
-    let response = await capi.getBodies(start, isForced);
+    let response = await capi.getBodies(start, isForced, url);
 
     for (let i = 0; i < response.length; i++) {
       bodies.push(response[i]);
@@ -55,6 +60,9 @@ const fetchBodies = async (start, limit = settings.global.capiLimit) => {
 };
 
 const update = async () => {
+  // Grab URL
+  let url = await capi.capiURL();
+
   let start = 0;
 
   if (params.start) {
@@ -66,7 +74,7 @@ const update = async () => {
     }
   }
 
-  let bodies = await fetchBodies(start);
+  let bodies = await fetchBodies(start, undefined, url);
 
   // Create edsm system cache
   let edsmSystems = [];
@@ -88,7 +96,8 @@ const update = async () => {
       {
         missingSkipCount: bodyData.missingSkipCount,
       },
-      jwt
+      jwt,
+      url
     );
   };
 
@@ -103,7 +112,7 @@ const update = async () => {
       newData.missingSkipCount = 0;
     }
 
-    await capi.updateBody(bodyID, newData, jwt);
+    await capi.updateBody(bodyID, newData, jwt, url);
   };
 
   for (let i = 0; i < bodies.length; i++) {
@@ -129,7 +138,7 @@ const update = async () => {
 
     if (!bodyData) {
       logger.warn('--> System not in cache, asking EDSM');
-      let response = await edsm.getBodyEDSM(bodies[i].system.systemName);
+      let response = await edsm.getBody(bodies[i].system.systemName);
       edsmSystems.push(await response);
 
       if (
@@ -155,7 +164,7 @@ const update = async () => {
     } else {
       await badBody(bodies[i]);
     }
-    await delay(settings.scripts.edsmBodyUpdate.edsmDelay);
+    await delay(updateSettings.edsmDelay);
   }
 
   logger.stop('----------------');

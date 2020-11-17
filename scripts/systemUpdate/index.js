@@ -1,19 +1,24 @@
 const cron = require('node-cron');
 const logger = require('perfect-logger');
-const loginit = require('../../modules/logger/scriptModule_loginit');
-const edsm = require('../../modules/edsm/scriptModule_edsm');
-const capi = require('../../modules/capi/scriptModule_capi');
-const utils = require('../../modules/utils/scriptModule_utils');
-const settings = require('../../settings.json');
+
+const loginit = require('../../modules/logger');
+const capi = require('../../modules/capi');
+const edsm = require('../../modules/edsm');
+const utils = require('../../modules/utils');
+const settings = require('../../settings');
+
 const params = require('minimist')(process.argv.slice(2));
 const delay = (ms) => new Promise((res) => setTimeout(res, ms));
+
+// REMOVE after migration to core script
 require('dotenv').config({ path: require('find-config')('.env') });
 
 // Init some base Script values
-let scriptName = 'edsmSystemUpdate';
+let scriptName = 'systemUpdate';
 let isForced = false;
 let isCron = true;
 let jwt;
+let updateSettings = settings.scripts[scriptName];
 
 // Start the logger
 loginit(scriptName);
@@ -25,9 +30,9 @@ if (params.force === true) {
 }
 
 // Ask CAPI for systems
-const fetchSystems = async (start, limit = settings.global.capiLimit) => {
+const fetchSystems = async (start, limit = settings.global.capiLimit, url) => {
   // Login to the Canonn API
-  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS);
+  jwt = await capi.login(process.env.CAPI_USER, process.env.CAPI_PASS, url);
 
   // Grab systems
   logger.info('Fetching systems from Canonn API');
@@ -36,7 +41,7 @@ const fetchSystems = async (start, limit = settings.global.capiLimit) => {
   let systems = [];
 
   while (keepGoing === true) {
-    let response = await capi.getSystems(start, isForced);
+    let response = await capi.getSystems(start, isForced, undefined, url);
 
     for (let i = 0; i < response.length; i++) {
       systems.push(response[i]);
@@ -55,6 +60,9 @@ const fetchSystems = async (start, limit = settings.global.capiLimit) => {
 };
 
 const update = async () => {
+  // Grab URL
+  let url = await capi.capiURL();
+
   let start = 0;
 
   if (params.start) {
@@ -66,14 +74,14 @@ const update = async () => {
     }
   }
 
-  let systems = await fetchSystems(start);
+  let systems = await fetchSystems(start, undefined, url);
 
   for (let i = 0; i < systems.length; i++) {
     logger.info(
       `Updating on information on System ID: ${systems[i].id} [${i + 1}/${systems.length}]`
     );
     logger.info('--> Asking EDSM for system data');
-    let response = await edsm.getSystemEDSM(systems[i].systemName);
+    let response = await edsm.getSystem(systems[i].systemName);
 
     if (!response || Array.isArray(response) === true || response == [] || response == {}) {
       logger.warn('<-- System not found, updating CAPI with skip count');
@@ -90,11 +98,12 @@ const update = async () => {
         {
           missingSkipCount: skipCount,
         },
-        jwt
+        jwt,
+        url
       );
     } else {
       logger.info('<-- System Found, updating CAPI with new data');
-      let newData = await utils.processSystem('edsm', response);
+      let newData = await utils.processSystem('edsm', response, url);
 
       if (newData.edsmCoordLocked === false && isForced === false) {
         if (typeof systems[i].missingSkipCount !== 'number') {
@@ -105,9 +114,9 @@ const update = async () => {
       } else if (isForced === false) {
         newData.missingSkipCount = 0;
       }
-      await capi.updateSystem(systems[i].id, newData, jwt);
+      await capi.updateSystem(systems[i].id, newData, jwt, url);
     }
-    await delay(settings.scripts.edsmSystemUpdate.edsmDelay);
+    await delay(updateSettings.edsmDelay);
   }
 
   logger.stop('----------------');
