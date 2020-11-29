@@ -26,9 +26,13 @@ module.exports = {
   },
 
   //Fetch an array of Reports
-  getReports: async (reportType, reportStatus, start, url, limit = global.capiLimit) => {
+  getReports: async (reportType, reportStatus, start, url, noUnknown = false, limit = global.capiLimit) => {
     let reportsURL =
       url + `/${reportType}reports?reportStatus=${reportStatus}&_start=${start}&_limit=${limit}`;
+
+    if (noUnknown === true) {
+      reportsURL = reportsURL + '&type_ne=unknown'
+    }
 
     let reportData = [];
     try {

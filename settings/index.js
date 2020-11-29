@@ -15,6 +15,7 @@ const systemUpdate = require('./apiUpdate/systemUpdate');
 // Misc Script settings
 const deleteMR = require('./misc/deleteMR');
 const journalUpdateCheck = require('./misc/journalUpdateCheck');
+const updateGR = require('./misc/updateGR');
 
 module.exports = {
   global: global,
@@ -28,5 +29,6 @@ module.exports = {
     systemUpdate,
     deleteMR,
     journalUpdateCheck,
+    updateGR,
   },
 };

@@ -48,7 +48,7 @@ const fetchReports = async (type, status, start, limit = settings.global.capiLim
 
   // Get reports via a loop based on response length
   while (keepGoing === true) {
-    let response = await capi.getReports(type, status, start, url);
+    let response = await capi.getReports(type, status, start, url, true);
 
     for (let i = 0; i < response.length; i++) {
       reports.push(response[i]);

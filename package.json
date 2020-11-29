@@ -9,6 +9,8 @@
     "journalChecker": "node scripts/journalUpdateCheck/index.js",
     "baseReport": "node scripts/baseReport/index.js",
     "baseReport:now": "node scripts/baseReport/index.js --now",
+    "guardianReport": "node scripts/guardianReport/index.js",
+    "guardianReport:now": "node scripts/guardianReport/index.js --now",
     "thargoidReport": "node scripts/thargoidReport/index.js",
     "thargoidReport:now": "node scripts/thargoidReport/index.js --now",
     "deleteMR": "node scripts/deleteMR/index.js",
@@ -23,6 +25,7 @@
   },
   "dependencies": {
     "axios": "^0.19.2",
+    "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
