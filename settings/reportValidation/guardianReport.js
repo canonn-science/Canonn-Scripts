@@ -13,5 +13,5 @@ module.exports = {
     delay: 1500,
     edsmRetry: 5,
   },
-  acceptedTypes: ['gs'],
+  acceptedTypes: ['gr', 'gs'],
 };

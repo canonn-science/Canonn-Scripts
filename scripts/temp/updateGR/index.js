@@ -30,7 +30,7 @@ async function update() {
   let data = await readCSV(filePath);
 
   for (let i = 0; i < data.length; i++) {
-    logger.info(`Updating GR Report ID: ${data[i].id}`);
+    logger.info(`Updating GR Report ID: ${data[i].id}` + ' - ' + `[${i+1}/${data.length}]`);
     let updated = await capi.updateReport(
       'gr',
       data[i].id,
@@ -43,7 +43,7 @@ async function update() {
     } else {
       logger.crit('Update failed');
     }
-    await delay(2000);
+    await delay(500);
   }
 }
 
