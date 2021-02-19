@@ -24,7 +24,7 @@
     "lint": "eslint modules/**/*.js settings/**/*.js scripts/**/*.js"
   },
   "dependencies": {
-    "axios": "^0.19.2",
+    "axios": "^0.21.1",
     "csvtojson": "^2.0.10",
     "dotenv": "^8.2.0",
     "fetch-retry": "^2.2.3",
