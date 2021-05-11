@@ -30,7 +30,7 @@
     "fetch-retry": "^2.2.3",
     "find-config": "^1.0.0",
     "hookcord": "^2.0.2",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "minimist": "^1.2.5",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
