@@ -31,7 +31,7 @@
     "find-config": "^1.0.0",
     "hookcord": "^2.0.2",
     "lodash": "^4.17.20",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "moment": "^2.24.0",
     "node-cron": "^2.0.3",
     "path": "^0.12.7",
